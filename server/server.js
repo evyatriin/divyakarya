@@ -20,13 +20,29 @@ app.use('/api/admin', require('./routes/admin'));
 app.use('/api/payments', require('./routes/payments'));
 app.use('/api/ceremonies', require('./routes/ceremonies'));
 
+// Initialize database (for serverless)
+async function initializeDatabase() {
+    try {
+        await sequelize.sync({ force: false });
+        console.log('Database synced');
+    } catch (err) {
+        console.error('Unable to connect to the database:', err);
+        throw err;
+    }
+}
 
-// Sync Database
-sequelize.sync({ force: false }).then(() => {
-    console.log('Database synced');
-    app.listen(PORT, () => {
-        console.log(`Server running on port ${PORT}`);
+// Start server (for local development)
+if (require.main === module) {
+    initializeDatabase().then(() => {
+        app.listen(PORT, () => {
+            console.log(`Server running on port ${PORT}`);
+        });
+    }).catch(err => {
+        console.error('Failed to initialize:', err);
+        process.exit(1);
     });
-}).catch(err => {
-    console.error('Unable to connect to the database:', err);
-});
+}
+
+// Export for serverless
+module.exports = app;
+module.exports.initializeDatabase = initializeDatabase;
