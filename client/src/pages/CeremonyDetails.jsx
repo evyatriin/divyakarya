@@ -1,0 +1,200 @@
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
+import { Calendar, Clock, MapPin, CheckCircle, ArrowRight, Star, PlayCircle } from 'lucide-react';
+
+const CeremonyDetails = () => {
+    const { id } = useParams();
+    const navigate = useNavigate();
+    const { user } = useAuth();
+    const { language } = useLanguage();
+    const [details, setDetails] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [bookingDetails, setBookingDetails] = useState({
+        date: '', time: '', address: ''
+    });
+
+    useEffect(() => {
+        const fetchDetails = async () => {
+            try {
+                setLoading(true);
+                const res = await axios.get(`http://localhost:5000/api/ceremonies/${id}?lang=${language}`);
+                setDetails(res.data);
+            } catch (error) {
+                console.error('Error fetching ceremony details:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchDetails();
+    }, [id, language]);
+
+    const handleBookingSubmit = (e) => {
+        e.preventDefault();
+        const bookingData = {
+            ceremonyType: details.title,
+            ...bookingDetails,
+            amount: 1000
+        };
+
+        if (user) {
+            navigate('/dashboard', { state: { prefill: bookingData } });
+        } else {
+            localStorage.setItem('pendingBooking', JSON.stringify(bookingData));
+            navigate('/login');
+        }
+    };
+
+    if (loading) return <div>Loading...</div>;
+    if (!details) return <div>Ceremony not found</div>;
+
+    return (
+        <div className="container animate-fade-in" style={{ marginTop: '2rem', paddingBottom: '4rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem' }}>
+
+                {/* Left Column: Details */}
+                <div>
+                    <img
+                        src={details.image}
+                        alt={details.title}
+                        style={{ width: '100%', height: '300px', objectFit: 'cover', borderRadius: 'var(--radius)', marginBottom: '2rem' }}
+                    />
+                    <h1 style={{ color: 'var(--primary)', marginBottom: '1rem' }}>{details.title}</h1>
+                    <p style={{ fontSize: '1.1rem', color: 'var(--text-light)', lineHeight: '1.6', marginBottom: '2rem' }}>
+                        {details.description}
+                    </p>
+
+                    {/* Videos Carousel (Simple) */}
+                    {details.videos && details.videos.length > 0 && (
+                        <div style={{ marginBottom: '2rem' }}>
+                            <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <PlayCircle size={20} color="var(--primary)" /> Ceremony Videos
+                            </h3>
+                            <div style={{ display: 'flex', gap: '1rem', overflowX: 'auto', paddingBottom: '1rem' }}>
+                                {details.videos.map((video, i) => (
+                                    <video key={i} controls style={{ width: '300px', borderRadius: 'var(--radius)' }}>
+                                        <source src={video} type="video/mp4" />
+                                        Your browser does not support the video tag.
+                                    </video>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    <div style={{ marginBottom: '2rem' }}>
+                        <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <CheckCircle size={20} color="var(--primary)" /> Required Samagri
+                        </h3>
+                        <ul style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', listStyle: 'none' }}>
+                            {details.samagri.map((item, i) => (
+                                <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <span style={{ width: '6px', height: '6px', background: 'var(--primary)', borderRadius: '50%' }}></span>
+                                    {item}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+
+                    <div style={{ marginBottom: '2rem' }}>
+                        <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <ArrowRight size={20} color="var(--primary)" /> Ceremony Process
+                        </h3>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            {details.process.map((step, i) => (
+                                <div key={i} style={{ display: 'flex', gap: '1rem', alignItems: 'center', background: '#FFFBEB', padding: '1rem', borderRadius: 'var(--radius)' }}>
+                                    <div style={{
+                                        width: '30px', height: '30px', background: 'var(--primary)', color: 'white',
+                                        borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold'
+                                    }}>
+                                        {i + 1}
+                                    </div>
+                                    <span style={{ fontWeight: '500' }}>{step}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Reviews */}
+                    {details.reviews && details.reviews.length > 0 && (
+                        <div>
+                            <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <Star size={20} color="var(--primary)" /> Reviews
+                            </h3>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                {details.reviews.map((review, i) => (
+                                    <div key={i} className="card" style={{ padding: '1rem' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                                            <span style={{ fontWeight: 'bold' }}>{review.user}</span>
+                                            <span style={{ display: 'flex', alignItems: 'center', color: '#F59E0B' }}>
+                                                {review.rating} <Star size={14} fill="#F59E0B" />
+                                            </span>
+                                        </div>
+                                        <p style={{ color: 'var(--text-light)', fontSize: '0.9rem' }}>"{review.comment}"</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Right Column: Booking Form */}
+                <div style={{ position: 'sticky', top: '2rem', height: 'fit-content' }}>
+                    <div className="card" style={{ border: '2px solid var(--primary)' }}>
+                        <h2 style={{ marginBottom: '1.5rem', textAlign: 'center' }}>Book This Ceremony</h2>
+
+                        <form onSubmit={handleBookingSubmit}>
+                            <label className="label">Date</label>
+                            <div className="input" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem' }}>
+                                <Calendar size={18} color="var(--text-light)" />
+                                <input
+                                    type="date"
+                                    style={{ border: 'none', outline: 'none', width: '100%', fontSize: '1rem' }}
+                                    required
+                                    value={bookingDetails.date}
+                                    onChange={e => setBookingDetails({ ...bookingDetails, date: e.target.value })}
+                                />
+                            </div>
+
+                            <label className="label">Time</label>
+                            <div className="input" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem' }}>
+                                <Clock size={18} color="var(--text-light)" />
+                                <input
+                                    type="time"
+                                    style={{ border: 'none', outline: 'none', width: '100%', fontSize: '1rem' }}
+                                    required
+                                    value={bookingDetails.time}
+                                    onChange={e => setBookingDetails({ ...bookingDetails, time: e.target.value })}
+                                />
+                            </div>
+
+                            <label className="label">Address</label>
+                            <div className="input" style={{ display: 'flex', alignItems: 'start', gap: '0.5rem', padding: '0.5rem' }}>
+                                <MapPin size={18} color="var(--text-light)" style={{ marginTop: '3px' }} />
+                                <textarea
+                                    style={{ border: 'none', outline: 'none', width: '100%', fontSize: '1rem', fontFamily: 'inherit', resize: 'none' }}
+                                    rows="3"
+                                    required
+                                    placeholder="Enter full address"
+                                    value={bookingDetails.address}
+                                    onChange={e => setBookingDetails({ ...bookingDetails, address: e.target.value })}
+                                />
+                            </div>
+
+                            <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1rem', fontSize: '1.1rem' }}>
+                                {user ? 'Proceed to Book' : 'Login to Book'}
+                            </button>
+                            <p style={{ textAlign: 'center', marginTop: '1rem', fontSize: '0.9rem', color: 'var(--text-light)' }}>
+                                You will be redirected to the dashboard to confirm payment.
+                            </p>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    );
+};
+
+export default CeremonyDetails;
