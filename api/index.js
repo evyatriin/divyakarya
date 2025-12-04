@@ -14,14 +14,19 @@ async function ensureInitialized() {
 
 // Serverless function handler
 module.exports = async (req, res) => {
+    console.log(`[Vercel] Incoming request: ${req.method} ${req.url}`);
+
     try {
+        console.log('[Vercel] ensuring database initialized...');
         await ensureInitialized();
+        console.log('[Vercel] database initialized, passing to app...');
         return app(req, res);
     } catch (error) {
-        console.error('Serverless function error:', error);
+        console.error('[Vercel] Serverless function error:', error);
         return res.status(500).json({
             error: 'Internal server error',
-            message: error.message
+            message: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
         });
     }
 };

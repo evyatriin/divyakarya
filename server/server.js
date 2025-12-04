@@ -22,11 +22,12 @@ app.use('/api/ceremonies', require('./routes/ceremonies'));
 
 // Root route for health check
 app.get('/', (req, res) => {
-    res.json({ status: 'ok', message: 'Server is running' });
+    console.log('Health check request received');
+    res.json({ status: 'ok', message: 'Server is running', env: process.env.NODE_ENV });
 });
 
-// Catch-all for debugging 404s
-app.use('*', (req, res) => {
+// Catch-all for debugging 404s - Express 5 compatible
+app.use((req, res) => {
     console.log(`404 Not Found: ${req.originalUrl}`);
     res.status(404).json({
         error: 'Not Found',
