@@ -11,7 +11,7 @@ const Booking = sequelize.define('Booking', {
         allowNull: false
     },
     time: {
-        type: DataTypes.TIME,
+        type: DataTypes.STRING,
         allowNull: false
     },
     address: {
@@ -28,7 +28,56 @@ const Booking = sequelize.define('Booking', {
     },
     amount: {
         type: DataTypes.FLOAT,
-        allowNull: false
+        allowNull: true
+    },
+    // Modern Booking UI fields
+    city: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    locationType: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    tradition: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    purpose: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    participants: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    havanOption: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    samagriOption: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    preferredLanguage: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    customerName: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    customerEmail: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    customerPhone: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    notes: {
+        type: DataTypes.TEXT,
+        allowNull: true
     }
 });
 

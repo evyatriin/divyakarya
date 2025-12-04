@@ -2,6 +2,86 @@ const express = require('express');
 const router = express.Router();
 const { Booking, User, Pandit } = require('../models');
 const authenticateToken = require('../middleware/auth');
+const { sendBookingConfirmation } = require('../services/emailService');
+
+// Public Booking Endpoint (No Auth Required)
+router.post('/public', async (req, res) => {
+    try {
+        const {
+            ceremonyType,
+            date,
+            time,
+            city,
+            locationType,
+            tradition,
+            purpose,
+            participants,
+            havanOption,
+            samagriOption,
+            preferredLanguage,
+            customerName,
+            customerEmail,
+            customerPhone
+        } = req.body;
+
+        // Validate required fields
+        if (!ceremonyType || !date || !time || !customerName || !customerEmail || !customerPhone) {
+            return res.status(400).json({
+                error: 'Missing required fields',
+                required: ['ceremonyType', 'date', 'time', 'customerName', 'customerEmail', 'customerPhone']
+            });
+        }
+
+        // Create booking
+        const booking = await Booking.create({
+            ceremonyType,
+            date,
+            time,
+            address: `${locationType} in ${city}`,
+            city,
+            locationType,
+            tradition,
+            purpose,
+            participants,
+            havanOption,
+            samagriOption,
+            preferredLanguage,
+            customerName,
+            customerEmail,
+            customerPhone,
+            amount: 0, // Will be determined later
+            status: 'pending'
+        });
+
+        // Send confirmation email (mock)
+        const emailResult = await sendBookingConfirmation({
+            ...booking.toJSON(),
+            ceremonyType,
+            date,
+            time,
+            city,
+            locationType,
+            tradition,
+            purpose
+        });
+
+        res.status(201).json({
+            success: true,
+            message: 'Booking received successfully! We will contact you soon.',
+            booking: {
+                id: booking.id,
+                ceremonyType: booking.ceremonyType,
+                date: booking.date,
+                time: booking.time,
+                status: booking.status
+            },
+            emailSent: emailResult.success
+        });
+    } catch (error) {
+        console.error('Booking creation error:', error);
+        res.status(500).json({ error: 'Failed to create booking. Please try again.' });
+    }
+});
 
 // Create Booking (User)
 router.post('/', authenticateToken, async (req, res) => {
