@@ -1,8 +1,10 @@
 const { Sequelize } = require('sequelize');
 const path = require('path');
+const pg = require('pg'); // Explicitly require pg for Vercel bundling
 
 const sequelize = new Sequelize(process.env.DATABASE_URL, {
   dialect: 'postgres',
+  dialectModule: pg, // Explicitly provide the dialect module
   dialectOptions: {
     ssl: {
       require: true,
