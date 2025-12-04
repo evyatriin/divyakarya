@@ -66,15 +66,23 @@ const UserDashboard = () => {
         }
     };
 
+    const [successMessage, setSuccessMessage] = useState(null);
+
     const autoSubmitBooking = async (bookingData) => {
         setSubmitting(true);
         setError('');
+        setSuccessMessage(null);
         try {
             const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-            await axios.post(`${apiUrl}/api/bookings`, bookingData);
+            const res = await axios.post(`${apiUrl}/api/bookings`, bookingData);
             await fetchBookings();
             setNewBooking({ ceremonyType: '', date: '', time: '', address: '', amount: 1000 });
-            alert('Booking request sent successfully!');
+            setSuccessMessage({
+                id: res.data.id,
+                message: `Booking request sent successfully! Request #${res.data.id}`
+            });
+            // Clear success message after 10 seconds
+            setTimeout(() => setSuccessMessage(null), 10000);
         } catch (error) {
             console.error('Error creating booking:', error);
             setError(error.response?.data?.error || 'Error booking ceremony');
@@ -99,17 +107,22 @@ const UserDashboard = () => {
         e.preventDefault();
         setSubmitting(true);
         setError('');
+        setSuccessMessage(null);
         try {
             const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-            await axios.post(`${apiUrl}/api/bookings`, newBooking);
+            const res = await axios.post(`${apiUrl}/api/bookings`, newBooking);
             await fetchBookings();
             setNewBooking({ ceremonyType: '', date: '', time: '', address: '', amount: 1000 });
-            alert('Booking request sent!');
+            setSuccessMessage({
+                id: res.data.id,
+                message: `Booking request sent successfully! Request #${res.data.id}`
+            });
+            // Clear success message after 10 seconds
+            setTimeout(() => setSuccessMessage(null), 10000);
         } catch (error) {
             console.error('Error creating booking:', error);
             const errorMsg = error.response?.data?.error || 'Error booking ceremony';
             setError(errorMsg);
-            alert(errorMsg);
         } finally {
             setSubmitting(false);
         }
@@ -220,6 +233,19 @@ const UserDashboard = () => {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '2rem', marginBottom: '3rem' }}>
                 <div className="card">
                     <h3 style={{ marginBottom: '1rem' }}>Book a Ceremony</h3>
+                    {successMessage && (
+                        <div style={{
+                            background: '#D1FAE5',
+                            color: '#065F46',
+                            padding: '1rem',
+                            borderRadius: '8px',
+                            marginBottom: '1rem',
+                            border: '1px solid #34D399'
+                        }}>
+                            <div style={{ fontWeight: 'bold', marginBottom: '0.25rem' }}>Success!</div>
+                            {successMessage.message}
+                        </div>
+                    )}
                     {error && (
                         <div style={{
                             background: '#FEE2E2',
