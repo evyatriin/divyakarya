@@ -1,9 +1,13 @@
 :root {
-  --primary: #D97706; /* Amber 600 */
+  --primary: #D97706;
+  /* Amber 600 */
   --primary-hover: #B45309;
-  --secondary: #1F2937; /* Gray 800 */
-  --accent: #F59E0B; /* Amber 500 */
-  --background: #FFFBEB; /* Amber 50 */
+  --secondary: #1F2937;
+  /* Gray 800 */
+  --accent: #F59E0B;
+  /* Amber 500 */
+  --background: #FFFBEB;
+  /* Amber 50 */
   --surface: #FFFFFF;
   --text: #1F2937;
   --text-light: #6B7280;
@@ -27,7 +31,12 @@ body {
   line-height: 1.5;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-weight: 700;
   line-height: 1.2;
 }
@@ -81,7 +90,7 @@ button {
   border-radius: var(--radius);
   padding: 1.5rem;
   box-shadow: var(--shadow);
-  border: 1px solid rgba(0,0,0,0.05);
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .input {
@@ -109,10 +118,45 @@ button {
 
 /* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .animate-fade-in {
   animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* Responsive Utilities */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 1rem;
+  }
+
+  h1 {
+    font-size: 2rem !important;
+  }
+
+  h2 {
+    font-size: 1.75rem !important;
+  }
+
+  h3 {
+    font-size: 1.5rem !important;
+  }
+
+  .card {
+    padding: 1rem;
+  }
+
+  /* Make grids stack on mobile */
+  .grid-responsive {
+    grid-template-columns: 1fr !important;
+  }
 }

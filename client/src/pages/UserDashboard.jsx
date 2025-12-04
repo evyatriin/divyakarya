@@ -264,7 +264,7 @@ const UserDashboard = () => {
             <h1 style={{ marginBottom: '2rem', color: 'var(--primary)' }}>Namaste, {user.name}</h1>
 
             {/* Booking Form Section */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '2rem', marginBottom: '3rem' }}>
+            <div className="grid-responsive" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '2rem', marginBottom: '3rem' }}>
                 <div className="card">
                     <h3 style={{ marginBottom: '1rem' }}>Book a Ceremony</h3>
                     {successMessage && (
