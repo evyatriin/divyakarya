@@ -54,10 +54,21 @@ app.use((req, res) => {
 });
 
 // Initialize database (for serverless)
+let dbInitialized = false;
+
 async function initializeDatabase() {
+    if (dbInitialized) return;
+
     try {
-        await sequelize.sync({ force: false });
-        console.log('Database synced');
+        // In production, skip sync - migrations should handle schema
+        if (process.env.NODE_ENV === 'production') {
+            await sequelize.authenticate();
+            console.log('Database connection established');
+        } else {
+            await sequelize.sync({ force: false });
+            console.log('Database synced');
+        }
+        dbInitialized = true;
     } catch (err) {
         console.error('Unable to connect to the database:', err);
         throw err;
