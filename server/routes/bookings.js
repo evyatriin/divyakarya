@@ -130,13 +130,6 @@ router.get('/', authenticateToken, async (req, res) => {
                 { model: User, attributes: ['name', 'phone', 'email'] },
                 { model: Pandit, attributes: ['name', 'phone'] }
             ],
-            attributes: [
-                'id', 'ceremonyType', 'date', 'time', 'address', 'status',
-                'paymentStatus', 'amount', 'city', 'locationType', 'tradition',
-                'purpose', 'participants', 'havanOption', 'samagriOption',
-                'preferredLanguage', 'customerName', 'customerEmail', 'customerPhone',
-                'createdAt', 'updatedAt'
-            ],
             order: [['createdAt', 'DESC']]
         });
         res.json(bookings);

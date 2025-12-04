@@ -60,14 +60,9 @@ async function initializeDatabase() {
     if (dbInitialized) return;
 
     try {
-        // In production, skip sync - migrations should handle schema
-        if (process.env.NODE_ENV === 'production') {
-            await sequelize.authenticate();
-            console.log('Database connection established');
-        } else {
-            await sequelize.sync({ force: false });
-            console.log('Database synced');
-        }
+        // Sync database - use alter to add missing columns without dropping data
+        await sequelize.sync({ alter: true });
+        console.log('Database synced');
         dbInitialized = true;
     } catch (err) {
         console.error('Unable to connect to the database:', err);
