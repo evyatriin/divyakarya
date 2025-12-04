@@ -20,7 +20,8 @@ const CeremonyDetails = () => {
         const fetchDetails = async () => {
             try {
                 setLoading(true);
-                const res = await axios.get(`http://localhost:5000/api/ceremonies/${id}?lang=${language}`);
+                const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+                const res = await axios.get(`${apiUrl}/api/ceremonies/${id}?lang=${language}`);
                 setDetails(res.data);
             } catch (error) {
                 console.error('Error fetching ceremony details:', error);
