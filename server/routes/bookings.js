@@ -87,16 +87,28 @@ router.post('/public', async (req, res) => {
 router.post('/', authenticateToken, async (req, res) => {
     try {
         const { ceremonyType, date, time, address, amount } = req.body;
+
+        // Validate required fields
+        if (!ceremonyType || !date || !time) {
+            return res.status(400).json({
+                error: 'Missing required fields',
+                required: ['ceremonyType', 'date', 'time']
+            });
+        }
+
         const booking = await Booking.create({
             UserId: req.user.id,
             ceremonyType,
             date,
             time,
-            address,
-            amount
+            address: address || 'To be confirmed',
+            amount: amount || 0,
+            status: 'pending',
+            paymentStatus: 'pending'
         });
         res.status(201).json(booking);
     } catch (error) {
+        console.error('Booking creation error:', error);
         res.status(500).json({ error: error.message });
     }
 });
