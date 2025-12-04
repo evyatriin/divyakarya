@@ -52,22 +52,51 @@ router.post('/login', async (req, res) => {
         const { email, password, role } = req.body; // role: 'user' or 'pandit' or 'admin'
 
         let user;
+        let actualRole = role;
+
         if (role === 'pandit') {
             user = await Pandit.findOne({ where: { email } });
+            if (!user) {
+                return res.status(400).json({ message: 'Pandit account not found with this email' });
+            }
+        } else if (role === 'admin') {
+            user = await User.findOne({ where: { email, role: 'admin' } });
+            if (!user) {
+                return res.status(400).json({ message: 'Admin account not found with this email' });
+            }
         } else {
+            // Regular user login
             user = await User.findOne({ where: { email } });
+            if (!user) {
+                return res.status(400).json({ message: 'User account not found with this email' });
+            }
+            actualRole = user.role; // Use the role from database (could be 'admin')
         }
 
-        if (!user) return res.status(400).json({ message: 'User not found' });
-
-        if (await bcrypt.compare(password, user.password)) {
-            const token = jwt.sign({ id: user.id, role: role || user.role }, process.env.JWT_SECRET);
-            res.json({ token, user: { id: user.id, name: user.name, role: role || user.role } });
-        } else {
-            res.status(403).json({ message: 'Invalid credentials' });
+        if (!user) {
+            return res.status(400).json({ message: 'Account not found' });
         }
+
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+            return res.status(403).json({ message: 'Invalid password' });
+        }
+
+        const token = jwt.sign({ id: user.id, role: actualRole }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+        res.json({
+            token,
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                phone: user.phone,
+                role: actualRole
+            }
+        });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('Login error:', error);
+        res.status(500).json({ error: 'Login failed. Please try again.' });
     }
 });
 
