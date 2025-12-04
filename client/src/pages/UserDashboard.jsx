@@ -140,14 +140,34 @@ const UserDashboard = () => {
                 description: "Ceremony Booking",
                 order_id: orderRes.data.id,
                 handler: async function (response) {
-                    await axios.post(`${apiUrl}/api/payments/verify`, {
-                        razorpay_order_id: response.razorpay_order_id,
-                        razorpay_payment_id: response.razorpay_payment_id,
-                        razorpay_signature: response.razorpay_signature,
-                        bookingId
-                    });
-                    fetchBookings();
-                    alert('Payment Successful!');
+                    try {
+                        await axios.post(`${apiUrl}/api/payments/verify`, {
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_signature: response.razorpay_signature,
+                            bookingId
+                        });
+                        fetchBookings();
+                        alert('Payment Successful!');
+                    } catch (err) {
+                        console.error('Payment verification failed:', err);
+                        alert('Payment verification failed. Please contact support.');
+                    }
+                },
+                modal: {
+                    ondismiss: async function () {
+                        console.log('Payment cancelled by user');
+                        try {
+                            await axios.post(`${apiUrl}/api/payments/failure`, {
+                                bookingId,
+                                errorDescription: 'Payment cancelled by user (modal closed)',
+                                razorpayOrderId: orderRes.data.id
+                            });
+                            fetchBookings(); // Refresh to show failed status if we update it
+                        } catch (err) {
+                            console.error('Error reporting payment cancellation:', err);
+                        }
+                    }
                 },
                 prefill: {
                     name: user.name,
@@ -157,10 +177,24 @@ const UserDashboard = () => {
                 theme: { color: "#D97706" }
             };
             const rzp1 = new window.Razorpay(options);
+            rzp1.on('payment.failed', async function (response) {
+                console.error('Payment failed:', response.error);
+                try {
+                    await axios.post(`${apiUrl}/api/payments/failure`, {
+                        bookingId,
+                        errorDescription: response.error.description || 'Payment failed',
+                        razorpayOrderId: orderRes.data.id
+                    });
+                    fetchBookings();
+                    alert(`Payment Failed: ${response.error.description}`);
+                } catch (err) {
+                    console.error('Error reporting payment failure:', err);
+                }
+            });
             rzp1.open();
         } catch (error) {
             console.error('Payment error:', error);
-            alert('Payment failed. Please try again.');
+            alert('Payment initiation failed. Please try again.');
         }
     };
 

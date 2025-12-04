@@ -50,4 +50,30 @@ router.post('/verify', authenticateToken, async (req, res) => {
     }
 });
 
+// Report Payment Failure
+router.post('/failure', authenticateToken, async (req, res) => {
+    try {
+        const { bookingId, errorDescription, razorpayOrderId } = req.body;
+
+        const booking = await Booking.findByPk(bookingId);
+        if (!booking) {
+            return res.status(404).json({ error: 'Booking not found' });
+        }
+
+        // Only update if not already paid
+        if (booking.paymentStatus !== 'paid') {
+            booking.paymentStatus = 'failed';
+            // We could also store the error description in a notes field or a separate log
+            // For now, let's append to notes if it exists, or just log it
+            console.log(`Payment failed for booking ${bookingId}: ${errorDescription}`);
+            await booking.save();
+        }
+
+        res.json({ status: 'recorded' });
+    } catch (error) {
+        console.error('Error recording payment failure:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 module.exports = router;
