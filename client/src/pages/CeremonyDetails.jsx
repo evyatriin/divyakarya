@@ -32,19 +32,39 @@ const CeremonyDetails = () => {
         fetchDetails();
     }, [id, language]);
 
-    const handleBookingSubmit = (e) => {
-        e.preventDefault();
-        const bookingData = {
-            ceremonyType: details.title,
-            ...bookingDetails,
-            amount: 1000
-        };
+    const [submitting, setSubmitting] = useState(false);
 
-        if (user) {
-            navigate('/dashboard', { state: { prefill: bookingData } });
-        } else {
+    const handleBookingSubmit = async (e) => {
+        e.preventDefault();
+
+        if (!user) {
+            const bookingData = {
+                ceremonyType: details.title,
+                ...bookingDetails,
+                amount: 1000
+            };
             localStorage.setItem('pendingBooking', JSON.stringify(bookingData));
             navigate('/login');
+            return;
+        }
+
+        setSubmitting(true);
+        try {
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+            await axios.post(`${apiUrl}/api/bookings`, {
+                ceremonyType: details.title,
+                date: bookingDetails.date,
+                time: bookingDetails.time,
+                address: bookingDetails.address,
+                amount: 1000
+            });
+            alert('Booking request sent successfully!');
+            navigate('/dashboard');
+        } catch (error) {
+            console.error('Error creating booking:', error);
+            alert(error.response?.data?.error || 'Error booking ceremony. Please try again.');
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -183,8 +203,13 @@ const CeremonyDetails = () => {
                                 />
                             </div>
 
-                            <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1rem', fontSize: '1.1rem' }}>
-                                {user ? 'Proceed to Book' : 'Login to Book'}
+                            <button
+                                type="submit"
+                                className="btn btn-primary"
+                                style={{ width: '100%', marginTop: '1rem', fontSize: '1.1rem' }}
+                                disabled={submitting}
+                            >
+                                {submitting ? 'Submitting...' : user ? 'Proceed to Book' : 'Login to Book'}
                             </button>
                             <p style={{ textAlign: 'center', marginTop: '1rem', fontSize: '0.9rem', color: 'var(--text-light)' }}>
                                 You will be redirected to the dashboard to confirm payment.

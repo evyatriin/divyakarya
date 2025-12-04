@@ -1,39 +1,85 @@
 import { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
-import { Calendar, MapPin, Clock, CreditCard, Download, XCircle } from 'lucide-react';
+import { Calendar, MapPin, Clock, CreditCard, Download, ArrowRight } from 'lucide-react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
 const UserDashboard = () => {
     const { user } = useAuth();
     const location = useLocation();
+    const navigate = useNavigate();
     const [bookings, setBookings] = useState([]);
+    const [ceremonies, setCeremonies] = useState([]);
     const [newBooking, setNewBooking] = useState({
         ceremonyType: '', date: '', time: '', address: '', amount: 1000
     });
     const [loading, setLoading] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
+    const [error, setError] = useState('');
 
     useEffect(() => {
         fetchBookings();
+        fetchCeremonies();
         checkForPendingBooking();
     }, []);
 
-    const checkForPendingBooking = () => {
+    const fetchCeremonies = async () => {
+        try {
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+            const res = await axios.get(`${apiUrl}/api/ceremonies`);
+            setCeremonies(res.data);
+        } catch (error) {
+            console.error('Error fetching ceremonies:', error);
+        }
+    };
+
+    const checkForPendingBooking = async () => {
+        // Check if redirected from ceremony page with booking data
         if (location.state?.prefill) {
-            setNewBooking(location.state.prefill);
+            const bookingData = location.state.prefill;
+            setNewBooking(bookingData);
+
+            // Auto-submit the booking if all required fields are present
+            if (bookingData.ceremonyType && bookingData.date && bookingData.time && bookingData.address) {
+                await autoSubmitBooking(bookingData);
+            }
+            // Clear the state to prevent re-submission on page refresh
+            window.history.replaceState({}, document.title);
             return;
         }
+
+        // Check localStorage for pending booking (from login redirect)
         const pending = localStorage.getItem('pendingBooking');
         if (pending) {
             try {
                 const data = JSON.parse(pending);
                 setNewBooking(data);
                 localStorage.removeItem('pendingBooking');
+                if (data.ceremonyType && data.date && data.time && data.address) {
+                    await autoSubmitBooking(data);
+                }
             } catch (e) {
                 console.error("Error parsing pending booking", e);
             }
+        }
+    };
+
+    const autoSubmitBooking = async (bookingData) => {
+        setSubmitting(true);
+        setError('');
+        try {
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+            await axios.post(`${apiUrl}/api/bookings`, bookingData);
+            await fetchBookings();
+            setNewBooking({ ceremonyType: '', date: '', time: '', address: '', amount: 1000 });
+            alert('Booking request sent successfully!');
+        } catch (error) {
+            console.error('Error creating booking:', error);
+            setError(error.response?.data?.error || 'Error booking ceremony');
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -51,15 +97,21 @@ const UserDashboard = () => {
 
     const handleBook = async (e) => {
         e.preventDefault();
+        setSubmitting(true);
+        setError('');
         try {
             const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
             await axios.post(`${apiUrl}/api/bookings`, newBooking);
-            fetchBookings();
+            await fetchBookings();
             setNewBooking({ ceremonyType: '', date: '', time: '', address: '', amount: 1000 });
             alert('Booking request sent!');
         } catch (error) {
             console.error('Error creating booking:', error);
-            alert('Error booking ceremony');
+            const errorMsg = error.response?.data?.error || 'Error booking ceremony';
+            setError(errorMsg);
+            alert(errorMsg);
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -102,7 +154,6 @@ const UserDashboard = () => {
     const generateInvoice = (booking) => {
         const doc = new jsPDF();
 
-        // Header
         doc.setFontSize(20);
         doc.setTextColor(217, 119, 6);
         doc.text('DivyaKarya', 20, 20);
@@ -110,13 +161,11 @@ const UserDashboard = () => {
         doc.setFontSize(16);
         doc.text('INVOICE', 20, 35);
 
-        // Invoice Details
         doc.setFontSize(10);
         doc.setTextColor(0, 0, 0);
         doc.text(`Invoice #: ${booking.id}`, 20, 45);
         doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 52);
 
-        // Customer Details
         doc.setFontSize(12);
         doc.text('Bill To:', 20, 65);
         doc.setFontSize(10);
@@ -124,7 +173,6 @@ const UserDashboard = () => {
         doc.text(user.phone || '', 20, 79);
         doc.text(user.email || '', 20, 86);
 
-        // Ceremony Details
         doc.autoTable({
             startY: 100,
             head: [['Description', 'Date', 'Time', 'Amount']],
@@ -138,7 +186,6 @@ const UserDashboard = () => {
             headStyles: { fillColor: [217, 119, 6] }
         });
 
-        // Additional Details
         const finalY = doc.lastAutoTable.finalY + 10;
         doc.setFontSize(10);
         doc.text(`Location: ${booking.address || booking.city}`, 20, finalY);
@@ -148,19 +195,16 @@ const UserDashboard = () => {
         doc.text(`Status: ${booking.status.toUpperCase()}`, 20, finalY + 14);
         doc.text(`Payment Status: ${booking.paymentStatus.toUpperCase()}`, 20, finalY + 21);
 
-        // Total
         doc.setFontSize(14);
         doc.setFont(undefined, 'bold');
         doc.text(`Total: ₹${booking.amount}`, 140, finalY + 35);
 
-        // Footer
         doc.setFontSize(8);
         doc.setFont(undefined, 'normal');
         doc.setTextColor(128, 128, 128);
         doc.text('Thank you for choosing DivyaKarya!', 20, 280);
         doc.text('For any queries, contact us at support@divyakarya.com', 20, 285);
 
-        // Save
         doc.save(`invoice-${booking.id}.pdf`);
     };
 
@@ -169,13 +213,25 @@ const UserDashboard = () => {
     }
 
     return (
-        <div className="container animate-fade-in" style={{ marginTop: '2rem' }}>
+        <div className="container animate-fade-in" style={{ marginTop: '2rem', paddingBottom: '3rem' }}>
             <h1 style={{ marginBottom: '2rem', color: 'var(--primary)' }}>Namaste, {user.name}</h1>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '2rem' }}>
-                {/* Booking Form */}
+            {/* Booking Form Section */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '2rem', marginBottom: '3rem' }}>
                 <div className="card">
                     <h3 style={{ marginBottom: '1rem' }}>Book a Ceremony</h3>
+                    {error && (
+                        <div style={{
+                            background: '#FEE2E2',
+                            color: '#991B1B',
+                            padding: '0.75rem',
+                            borderRadius: '8px',
+                            marginBottom: '1rem',
+                            fontSize: '0.9rem'
+                        }}>
+                            {error}
+                        </div>
+                    )}
                     <form onSubmit={handleBook}>
                         <label className="label">Ceremony Type</label>
                         <select
@@ -185,11 +241,9 @@ const UserDashboard = () => {
                             required
                         >
                             <option value="">Select Ceremony</option>
-                            <option value="Satyanarayan Puja">Satyanarayan Puja</option>
-                            <option value="Griha Pravesh">Griha Pravesh</option>
-                            <option value="Ganapathi Puja">Ganapathi Puja</option>
-                            <option value="Naamkaranam">Naamkaranam</option>
-                            <option value="Vivah Puja">Wedding</option>
+                            {ceremonies.map(c => (
+                                <option key={c.id} value={c.title}>{c.title}</option>
+                            ))}
                         </select>
 
                         <label className="label">Date</label>
@@ -199,15 +253,29 @@ const UserDashboard = () => {
                         <input type="time" className="input" required value={newBooking.time} onChange={e => setNewBooking({ ...newBooking, time: e.target.value })} />
 
                         <label className="label">Address</label>
-                        <textarea className="input" required value={newBooking.address} onChange={e => setNewBooking({ ...newBooking, address: e.target.value })} />
+                        <textarea
+                            className="input"
+                            required
+                            value={newBooking.address}
+                            onChange={e => setNewBooking({ ...newBooking, address: e.target.value })}
+                            placeholder="Enter your full address"
+                            rows="3"
+                        />
 
-                        <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>Request Pandit</button>
+                        <button
+                            type="submit"
+                            className="btn btn-primary"
+                            style={{ width: '100%' }}
+                            disabled={submitting}
+                        >
+                            {submitting ? 'Submitting...' : 'Request Pandit'}
+                        </button>
                     </form>
                 </div>
 
                 {/* Booking History */}
                 <div>
-                    <h3 style={{ marginBottom: '1.5rem' }}>Your Booking History</h3>
+                    <h3 style={{ marginBottom: '1.5rem' }}>Your Booking History ({bookings.length})</h3>
                     {bookings.length === 0 ? (
                         <div className="card" style={{ textAlign: 'center', padding: '3rem' }}>
                             <Calendar size={48} color="var(--text-light)" style={{ margin: '0 auto 1rem' }} />
@@ -220,7 +288,7 @@ const UserDashboard = () => {
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1rem' }}>
                                         <div>
                                             <h4 style={{ color: 'var(--primary)', marginBottom: '0.5rem' }}>{b.ceremonyType}</h4>
-                                            <div style={{ display: 'flex', gap: '1.5rem', color: 'var(--text-light)', fontSize: '0.9rem' }}>
+                                            <div style={{ display: 'flex', gap: '1.5rem', color: 'var(--text-light)', fontSize: '0.9rem', flexWrap: 'wrap' }}>
                                                 <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                                                     <Calendar size={14} /> {b.date}
                                                 </span>
@@ -302,6 +370,64 @@ const UserDashboard = () => {
                             ))}
                         </div>
                     )}
+                </div>
+            </div>
+
+            {/* Available Ceremonies Section */}
+            <div>
+                <h3 style={{ marginBottom: '1.5rem', borderTop: '1px solid #E5E7EB', paddingTop: '2rem' }}>
+                    Available Ceremonies
+                </h3>
+                <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
+                    gap: '1.5rem'
+                }}>
+                    {ceremonies.map(ceremony => (
+                        <div
+                            key={ceremony.id}
+                            className="card"
+                            style={{
+                                cursor: 'pointer',
+                                transition: 'transform 0.2s, box-shadow 0.2s'
+                            }}
+                            onClick={() => navigate(`/ceremony/${ceremony.slug}`)}
+                            onMouseEnter={e => {
+                                e.currentTarget.style.transform = 'translateY(-5px)';
+                                e.currentTarget.style.boxShadow = '0 10px 25px rgba(0,0,0,0.1)';
+                            }}
+                            onMouseLeave={e => {
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.boxShadow = '';
+                            }}
+                        >
+                            <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>{ceremony.icon}</div>
+                            <h4 style={{ marginBottom: '0.5rem' }}>{ceremony.title}</h4>
+                            <p style={{
+                                color: 'var(--text-light)',
+                                fontSize: '0.9rem',
+                                marginBottom: '1rem',
+                                display: '-webkit-box',
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: 'vertical',
+                                overflow: 'hidden'
+                            }}>
+                                {ceremony.description}
+                            </p>
+                            <button
+                                className="btn btn-outline"
+                                style={{
+                                    width: '100%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '0.5rem'
+                                }}
+                            >
+                                View Details <ArrowRight size={16} />
+                            </button>
+                        </div>
+                    ))}
                 </div>
             </div>
         </div>
