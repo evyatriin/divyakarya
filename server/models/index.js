@@ -2,6 +2,7 @@ const User = require('./User');
 const Pandit = require('./Pandit');
 const Booking = require('./Booking');
 const Ceremony = require('./Ceremony');
+const PageContent = require('./PageContent');
 
 // Associations
 User.hasMany(Booking);
@@ -14,5 +15,6 @@ module.exports = {
     User,
     Pandit,
     Booking,
-    Ceremony
+    Ceremony,
+    PageContent
 };

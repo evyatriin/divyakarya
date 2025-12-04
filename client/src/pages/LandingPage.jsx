@@ -17,7 +17,8 @@ const LandingPage = () => {
         const fetchServices = async () => {
             try {
                 setLoading(true);
-                const res = await axios.get(`http://localhost:5000/api/ceremonies?lang=${language}`);
+                const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+                const res = await axios.get(`${apiUrl}/api/ceremonies?lang=${language}`);
                 setServices(res.data);
             } catch (error) {
                 console.error('Error fetching services:', error);

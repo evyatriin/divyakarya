@@ -19,6 +19,7 @@ app.use('/api/pandits', require('./routes/pandits'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/payments', require('./routes/payments'));
 app.use('/api/ceremonies', require('./routes/ceremonies'));
+app.use('/api/pages', require('./routes/pages'));
 
 // Root route for health check
 app.get('/', (req, res) => {

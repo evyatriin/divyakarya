@@ -101,6 +101,42 @@ const seed = async () => {
 
         await sequelize.models.Ceremony.bulkCreate(ceremonies);
 
+        // Create Page Content
+        const pages = [
+            {
+                slug: 'about-us',
+                title: 'About Us',
+                content: '<p>Welcome to DivyaKarya, your trusted platform for connecting with experienced Pandits. We aim to bring spiritual services to your doorstep with ease and authenticity.</p><p>Our mission is to preserve and promote Hindu traditions by making them accessible to everyone, everywhere.</p>',
+                metaDescription: 'Learn more about DivyaKarya and our mission.'
+            },
+            {
+                slug: 'contact-us',
+                title: 'Contact Us',
+                content: '<p>Have questions? Reach out to us!</p><ul><li>Email: support@divyakarya.com</li><li>Phone: +91 98765 43210</li><li>Address: 123 Spiritual Way, Hyderabad, India</li></ul>',
+                metaDescription: 'Contact DivyaKarya for support and inquiries.'
+            },
+            {
+                slug: 'register-pandit',
+                title: 'Register as a Pandit',
+                content: '<p>Are you an experienced Pandit? Join our network and reach more devotees.</p><p>Benefits:</p><ul><li>Flexible schedule</li><li>Fair compensation</li><li>Verified platform</li></ul><p>Contact us to start your registration process.</p>',
+                metaDescription: 'Join DivyaKarya as a Pandit.'
+            },
+            {
+                slug: 'feedback',
+                title: 'Feedback',
+                content: '<p>We value your feedback. Please let us know how we can improve your experience.</p><p>Email us at feedback@divyakarya.com</p>',
+                metaDescription: 'Share your feedback with DivyaKarya.'
+            },
+            {
+                slug: 'blog',
+                title: 'Our Blog',
+                content: '<p>Read our latest articles on Hindu traditions, festivals, and spiritual practices.</p><p><em>Coming soon: Weekly articles on Vedic astrology and rituals.</em></p>',
+                metaDescription: 'Read the DivyaKarya blog.'
+            }
+        ];
+
+        await sequelize.models.PageContent.bulkCreate(pages);
+
         console.log('Database seeded successfully!');
         process.exit(0);
     } catch (error) {
