@@ -57,16 +57,28 @@ app.use((req, res) => {
 let dbInitialized = false;
 
 async function initializeDatabase() {
-    if (dbInitialized) return;
+    if (dbInitialized) {
+        console.log('[DB] Already initialized, skipping');
+        return;
+    }
 
     try {
+        console.log('[DB] Starting database sync with alter: true...');
         // Sync database - use alter to add missing columns without dropping data
         await sequelize.sync({ alter: true });
-        console.log('Database synced');
+        console.log('[DB] Database synced successfully with all columns');
         dbInitialized = true;
     } catch (err) {
-        console.error('Unable to connect to the database:', err);
-        throw err;
+        console.error('[DB] Sync failed:', err.message);
+        // Try to at least authenticate if sync fails
+        try {
+            await sequelize.authenticate();
+            console.log('[DB] Connection authenticated (sync failed but connected)');
+            dbInitialized = true;
+        } catch (authErr) {
+            console.error('[DB] Authentication also failed:', authErr.message);
+            throw err;
+        }
     }
 }
 
