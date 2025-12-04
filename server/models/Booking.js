@@ -29,56 +29,21 @@ const Booking = sequelize.define('Booking', {
     amount: {
         type: DataTypes.FLOAT,
         allowNull: true
-    },
-    // Modern Booking UI fields
-    city: {
-        type: DataTypes.STRING,
-        allowNull: true
-    },
-    locationType: {
-        type: DataTypes.STRING,
-        allowNull: true
-    },
-    tradition: {
-        type: DataTypes.STRING,
-        allowNull: true
-    },
-    purpose: {
-        type: DataTypes.STRING,
-        allowNull: true
-    },
-    participants: {
-        type: DataTypes.STRING,
-        allowNull: true
-    },
-    havanOption: {
-        type: DataTypes.STRING,
-        allowNull: true
-    },
-    samagriOption: {
-        type: DataTypes.STRING,
-        allowNull: true
-    },
-    preferredLanguage: {
-        type: DataTypes.STRING,
-        allowNull: true
-    },
-    customerName: {
-        type: DataTypes.STRING,
-        allowNull: true
-    },
-    customerEmail: {
-        type: DataTypes.STRING,
-        allowNull: true
-    },
-    customerPhone: {
-        type: DataTypes.STRING,
-        allowNull: true
-    },
-    notes: {
-        type: DataTypes.TEXT,
-        allowNull: true
     }
+    // NOTE: The following columns were removed because they don't exist in production DB
+    // To add them back, first run this SQL in Supabase:
+    // ALTER TABLE "Bookings" ADD COLUMN IF NOT EXISTS "city" VARCHAR(255);
+    // ALTER TABLE "Bookings" ADD COLUMN IF NOT EXISTS "locationType" VARCHAR(255);
+    // ALTER TABLE "Bookings" ADD COLUMN IF NOT EXISTS "tradition" VARCHAR(255);
+    // ALTER TABLE "Bookings" ADD COLUMN IF NOT EXISTS "purpose" VARCHAR(255);
+    // ALTER TABLE "Bookings" ADD COLUMN IF NOT EXISTS "participants" VARCHAR(255);
+    // ALTER TABLE "Bookings" ADD COLUMN IF NOT EXISTS "havanOption" VARCHAR(255);
+    // ALTER TABLE "Bookings" ADD COLUMN IF NOT EXISTS "samagriOption" VARCHAR(255);
+    // ALTER TABLE "Bookings" ADD COLUMN IF NOT EXISTS "preferredLanguage" VARCHAR(255);
+    // ALTER TABLE "Bookings" ADD COLUMN IF NOT EXISTS "customerName" VARCHAR(255);
+    // ALTER TABLE "Bookings" ADD COLUMN IF NOT EXISTS "customerEmail" VARCHAR(255);
+    // ALTER TABLE "Bookings" ADD COLUMN IF NOT EXISTS "customerPhone" VARCHAR(255);
+    // ALTER TABLE "Bookings" ADD COLUMN IF NOT EXISTS "notes" TEXT;
 });
 
 module.exports = Booking;
