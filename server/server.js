@@ -20,6 +20,21 @@ app.use('/api/admin', require('./routes/admin'));
 app.use('/api/payments', require('./routes/payments'));
 app.use('/api/ceremonies', require('./routes/ceremonies'));
 
+// Root route for health check
+app.get('/', (req, res) => {
+    res.json({ status: 'ok', message: 'Server is running' });
+});
+
+// Catch-all for debugging 404s
+app.use('*', (req, res) => {
+    console.log(`404 Not Found: ${req.originalUrl}`);
+    res.status(404).json({
+        error: 'Not Found',
+        path: req.originalUrl,
+        message: 'The requested resource was not found on this server'
+    });
+});
+
 // Initialize database (for serverless)
 async function initializeDatabase() {
     try {
