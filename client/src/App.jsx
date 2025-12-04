@@ -7,6 +7,7 @@ import PanditDashboard from './pages/PanditDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import LandingPage from './pages/LandingPage';
 import CeremonyDetails from './pages/CeremonyDetails';
+import ModernBooking from './pages/ModernBooking';
 import ProtectedRoute from './components/ProtectedRoute';
 import { useAuth } from './context/AuthContext';
 
@@ -46,6 +47,7 @@ function App() {
         <Route path="/" element={<LandingPage />} />
 
         <Route path="/ceremony/:id" element={<CeremonyDetails />} />
+        <Route path="/modern" element={<ModernBooking />} />
 
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
