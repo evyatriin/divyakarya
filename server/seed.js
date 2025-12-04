@@ -49,25 +49,10 @@ const seed = async () => {
                 description: 'The Satyanarayan Puja is a religious worship of the Hindu god Vishnu. Satya means "Truth" and Narayana means, "The highest being".',
                 samagri: ['Kumkum', 'Turmeric', 'Rice', 'Betel Leaves', 'Betel Nuts', 'Flowers', 'Fruits', 'Milk', 'Yogurt', 'Honey', 'Ghee', 'Sugar'],
                 process: ['Sankalp (Vow)', 'Ganesh Puja', 'Kalash Sthapan', 'Navagraha Puja', 'Satyanarayan Katha', 'Havan', 'Aarti'],
-                videos: ['https://www.w3schools.com/html/mov_bbb.mp4', 'https://www.w3schools.com/html/movie.mp4'],
+                videos: ['https://www.w3schools.com/html/mov_bbb.mp4'],
                 reviews: [
-                    { user: 'Ramesh G.', rating: 5, comment: 'Excellent Pandit ji, very divine experience.' },
-                    { user: 'Suresh K.', rating: 4, comment: 'Good ceremony, started on time.' }
-                ],
-                translations: {
-                    te: {
-                        title: 'సత్యనారాయణ పూజ',
-                        description: 'సత్యనారాయణ పూజ హిందూ దేవుడైన విష్ణువు యొక్క మతపరమైన ఆరాధన. సత్య అంటే "నిజం" మరియు నారాయణ అంటే "అత్యున్నత జీవి".',
-                        samagri: ['కుంకుమ', 'పసుపు', 'బియ్యం', 'తమలపాకులు', 'వక్కలు', 'పూలు', 'పండ్లు', 'పాలు', 'పెరుగు', 'తేనె', 'నెయ్యి', 'చక్కెర'],
-                        process: ['సంకల్పం', 'గణపతి పూజ', 'కలశ స్థాపన', 'నవగ్రహ పూజ', 'సత్యనారాయణ కథ', 'హోమం', 'హారతి']
-                    },
-                    ta: {
-                        title: 'சத்யநாராயண பூஜை',
-                        description: 'சத்யநாராயண பூஜை என்பது விஷ்ணு பகவானின் மத வழிபாபாடாகும். சத்யா என்றால் "உண்மை" மற்றும் நாராயணா என்றால் "உயர்ந்தவர்".',
-                        samagri: ['குங்குமம்', 'மஞ்சள்', 'அரிசி', 'வெற்றிலை', 'பாக்கு', 'பூக்கள்', 'பழங்கள்', 'பால்', 'தயிர்', 'தேன்', 'நெய்', 'சர்க்கரை'],
-                        process: ['சங்கல்பம்', 'கணபதி பூஜை', 'கலச ஸ்தாபனம்', 'நவகிரக பூஜை', 'சத்யநாராயண கதை', 'ஹோமம்', 'ஆர்த்தி']
-                    }
-                }
+                    { user: 'Ramesh G.', rating: 5, comment: 'Excellent Pandit ji, very divine experience.' }
+                ]
             },
             {
                 slug: 'grihapravesh',
@@ -77,26 +62,119 @@ const seed = async () => {
                 description: 'Griha Pravesh is a Hindu ceremony performed on the occasion of an individual\'s first entry into their new home.',
                 samagri: ['Coconut', 'Rice', 'Milk', 'Jaggery', 'Flowers', 'Incense Sticks', 'Camphor', 'Turmeric', 'Kumkum'],
                 process: ['Dwar Puja', 'Boiling of Milk', 'Ganesh Puja', 'Vastu Shanti', 'Havan', 'Kitchen Puja'],
-                videos: ['https://www.w3schools.com/html/mov_bbb.mp4'],
-                reviews: [
-                    { user: 'Priya M.', rating: 5, comment: 'Very professional and traditional.' }
-                ],
-                translations: {
-                    te: {
-                        title: 'గృహ ప్రవేశం',
-                        description: 'గృహ ప్రవేశం అనేది ఒక వ్యక్తి తన కొత్త ఇంటికి మొదటిసారి ప్రవేశించిన సందర్భంగా నిర్వహించే హిందూ వేడుక.',
-                        samagri: ['కొబ్బరికాయ', 'బియ్యం', 'పాలు', 'బెల్లం', 'పూలు', 'అగర్బత్తులు', 'కర్పూరం', 'పసుపు', 'కుంకుమ'],
-                        process: ['ద్వార పూజ', 'పాలు పొంగించడం', 'గణపతి పూజ', 'వాస్తు శాంతి', 'హోమం', 'వంటగది పూజ']
-                    },
-                    ta: {
-                        title: 'கிருக பிரவேசம்',
-                        description: 'கிருக பிரவேசம் என்பது ஒரு நபர் தனது புதிய வீட்டிற்குள் முதன்முதலில் நுழைவதைக் குறிக்கும் இந்து விழாவாகும்.',
-                        samagri: ['தேங்காய்', 'அரிசி', 'பால்', 'வெல்லம்', 'பூக்கள்', 'ஊதுவத்தி', 'கற்பூரம்', 'மஞ்சள்', 'குங்குமம்'],
-                        process: ['துவார பூஜை', 'பால் காய்ச்சுதல்', 'கணபதி பூஜை', 'வாஸ்து சாந்தி', 'ஹோமம்', 'சமையலறை பூஜை']
-                    }
-                }
+                videos: [],
+                reviews: []
             },
-            // ... (Other ceremonies can be added similarly, keeping it short for now)
+            {
+                slug: 'naamkaranam',
+                title: 'Naamkaranam',
+                icon: '👶',
+                image: 'https://images.unsplash.com/photo-1519689680058-324335c77eba?q=80&w=1000&auto=format&fit=crop',
+                description: 'Naamkaranam is the traditional Hindu naming ceremony performed to select a newborn\'s name using astrological rules.',
+                samagri: ['Honey', 'Curd', 'Ghee', 'Betel leaves', 'Flowers', 'Turmeric', 'Kumkum', 'New clothes for baby'],
+                process: ['Ganapathi Puja', 'Punyaha Vachanam', 'Kalash Puja', 'Naming Ritual', 'Blessings'],
+                videos: [],
+                reviews: []
+            },
+            {
+                slug: 'ganapathi-puja',
+                title: 'Ganapathi Puja',
+                icon: '🐘',
+                image: 'https://images.unsplash.com/photo-1567591414240-e2152d0a395d?q=80&w=1000&auto=format&fit=crop',
+                description: 'Worship of Lord Ganesha, the remover of obstacles, performed before starting any new venture or ceremony.',
+                samagri: ['Modak', 'Durva Grass', 'Red Flowers', 'Coconut', 'Incense', 'Camphor'],
+                process: ['Avahana', 'Prana Pratishtha', 'Shodashopachara Puja', 'Aarti', 'Prasad Distribution'],
+                videos: [],
+                reviews: []
+            },
+            {
+                slug: 'upanayanam',
+                title: 'Upanayanam',
+                icon: '🧵',
+                image: 'https://images.unsplash.com/photo-1623366302587-b38b1ddaefd9?q=80&w=1000&auto=format&fit=crop',
+                description: 'The sacred thread ceremony that marks the acceptance of a student by a Guru and an individual\'s entrance into the school of Hinduism.',
+                samagri: ['Sacred Thread (Yagnopavita)', 'Deer Skin (symbolic)', 'Darbha Grass', 'Firewood for Havan', 'Ghee'],
+                process: ['Udaka Shanti', 'Yagnopavita Dharanam', 'Brahmopadesam', 'Bhiksha Vandanam'],
+                videos: [],
+                reviews: []
+            },
+            {
+                slug: 'bhumi-puja',
+                title: 'Bhumi Puja',
+                icon: '🏗️',
+                image: 'https://images.unsplash.com/photo-1598436327386-74971253443a?q=80&w=1000&auto=format&fit=crop',
+                description: 'Worship of Mother Earth (Bhoomi Devi) before beginning construction on a new site to seek blessings and ensure smooth completion.',
+                samagri: ['Turmeric', 'Kumkum', 'Five types of fruits', 'Coconut', 'Navaratna (9 gems)', 'Milk'],
+                process: ['Ganesh Puja', 'Bhoomi Devi Invocation', 'Digging Ritual', 'Laying Foundation Stone'],
+                videos: [],
+                reviews: []
+            },
+            {
+                slug: 'navagraha-shanti',
+                title: 'Navagraha Shanti Homam',
+                icon: '🪐',
+                image: 'https://images.unsplash.com/photo-1605901309584-818e25960b8f?q=80&w=1000&auto=format&fit=crop',
+                description: 'A ritual to appease the nine planets (Navagrahas) and reduce their malefic effects while strengthening benevolent ones.',
+                samagri: ['Nine types of grains (Navadhanya)', 'Colored cloth pieces', 'Havan Samagri', 'Ghee', 'Sesame seeds'],
+                process: ['Sankalp', 'Kalash Sthapan', 'Navagraha Invocation', 'Havan for each planet', 'Purnahuti'],
+                videos: [],
+                reviews: []
+            },
+            {
+                slug: 'vivah-puja',
+                title: 'Vivah Puja',
+                icon: '💍',
+                image: 'https://images.unsplash.com/photo-1583934555026-17a11f91f378?q=80&w=1000&auto=format&fit=crop',
+                description: 'The traditional Hindu wedding ceremony uniting two souls in a sacred bond for seven lifetimes.',
+                samagri: ['Garlands', 'Mangalsutra', 'Rice', 'Turmeric', 'Kumkum', 'Coconut', 'Firewood', 'Ghee'],
+                process: ['Ganesh Puja', 'Kanyadaan', 'Panigrahan', 'Saptapadi (Seven Steps)', 'Mangalsutra Dharanam'],
+                videos: [],
+                reviews: []
+            },
+            {
+                slug: 'dosha-nivaran',
+                title: 'Ketu / Rahu Shanti & Mangal Dosh Nivaran',
+                icon: '🔥',
+                image: 'https://images.unsplash.com/photo-1515286576717-d26f6068ad05?q=80&w=1000&auto=format&fit=crop',
+                description: 'Special pujas to nullify the negative effects of Rahu, Ketu, and Mars (Mangal) in one\'s horoscope.',
+                samagri: ['Black Gram', 'Horse Gram', 'Red Lentils', 'Iron/Lead items (symbolic)', 'Red Cloth', 'Black Cloth'],
+                process: ['Sankalp', 'Graha Shanti Havan', 'Mantra Japa', 'Dan (Donation)'],
+                videos: [],
+                reviews: []
+            },
+            {
+                slug: 'sashtiapthapoorthi',
+                title: 'Sashtiapthapoorthi',
+                icon: '🎂',
+                image: 'https://images.unsplash.com/photo-1530047625168-4b29bf817008?q=80&w=1000&auto=format&fit=crop',
+                description: 'A ceremony celebrated on the completion of 60 years of age, marking a renewal of marital vows.',
+                samagri: ['Kalash', 'New Clothes', 'Mangalsutra', 'Gold/Silver coins', 'Havan Samagri'],
+                process: ['Ganesh Puja', 'Ayush Homam', 'Kalash Abhishekam', 'Muhurtham (Remarriage ritual)'],
+                videos: [],
+                reviews: []
+            },
+            {
+                slug: 'vahana-puja',
+                title: 'Vahana Puja',
+                icon: '🚗',
+                image: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?q=80&w=1000&auto=format&fit=crop',
+                description: 'Worship of a new vehicle to seek protection from accidents and ensure safe journeys.',
+                samagri: ['Lemons', 'Coconut', 'Turmeric', 'Kumkum', 'Flower Garland', 'Camphor'],
+                process: ['Cleaning vehicle', 'Drawing Swastik', 'Breaking Coconut', 'Lemon crushing under wheels'],
+                videos: [],
+                reviews: []
+            },
+            {
+                slug: 'business-opening',
+                title: 'Business Opening Puja',
+                icon: '🏢',
+                image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1000&auto=format&fit=crop',
+                description: 'A ceremony performed before opening a new office or shop to invite prosperity and success.',
+                samagri: ['Lakshmi Idol/Photo', 'Ganesh Idol', 'Account Books', 'Turmeric', 'Kumkum', 'Sweets'],
+                process: ['Ganesh Puja', 'Lakshmi Puja', 'Worship of Account Books/Tools', 'Prasad Distribution'],
+                videos: [],
+                reviews: []
+            }
         ];
 
         await sequelize.models.Ceremony.bulkCreate(ceremonies);
