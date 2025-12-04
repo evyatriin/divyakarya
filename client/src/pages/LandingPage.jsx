@@ -48,13 +48,32 @@ const LandingPage = () => {
                     <p style={{ fontSize: '1.2rem', color: 'var(--text-light)', maxWidth: '600px', margin: '0 auto 2rem' }}>
                         Book experienced and verified Pandits for Pujas, Weddings, and Rituals in just a few clicks.
                     </p>
-                    <button
-                        onClick={() => document.getElementById('services').scrollIntoView({ behavior: 'smooth' })}
-                        className="btn btn-primary"
-                        style={{ fontSize: '1.1rem', padding: '1rem 2rem' }}
-                    >
-                        Explore Services
-                    </button>
+                    {user ? (
+                        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                            <button
+                                onClick={() => navigate(user.role === 'admin' ? '/admin' : user.role === 'pandit' ? '/pandit' : '/dashboard')}
+                                className="btn btn-primary"
+                                style={{ fontSize: '1.1rem', padding: '1rem 2rem' }}
+                            >
+                                Go to Dashboard
+                            </button>
+                            <button
+                                onClick={() => document.getElementById('services').scrollIntoView({ behavior: 'smooth' })}
+                                className="btn btn-outline"
+                                style={{ fontSize: '1.1rem', padding: '1rem 2rem' }}
+                            >
+                                Explore Services
+                            </button>
+                        </div>
+                    ) : (
+                        <button
+                            onClick={() => document.getElementById('services').scrollIntoView({ behavior: 'smooth' })}
+                            className="btn btn-primary"
+                            style={{ fontSize: '1.1rem', padding: '1rem 2rem' }}
+                        >
+                            Explore Services
+                        </button>
+                    )}
                 </div>
             </section>
 

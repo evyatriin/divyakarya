@@ -54,6 +54,13 @@ const Navbar = () => {
 
                 {user ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <Link
+                            to={user.role === 'admin' ? '/admin' : user.role === 'pandit' ? '/pandit' : '/dashboard'}
+                            className="btn btn-primary"
+                            style={{ padding: '0.5rem 1rem', fontSize: '0.9rem', textDecoration: 'none' }}
+                        >
+                            Dashboard
+                        </Link>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <User size={18} /> {user.name}
                         </span>
