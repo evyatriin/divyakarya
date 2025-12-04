@@ -33,7 +33,6 @@ router.get('/', async (req, res) => {
         if (!ceremoniesCache || (now - cacheTimestamp) > CACHE_DURATION) {
             console.log('Cache miss - fetching ceremonies from DB');
             ceremoniesCache = await Ceremony.findAll({
-                attributes: ['id', 'slug', 'title', 'description', 'icon', 'price', 'duration', 'samagri', 'process', 'translations'],
                 raw: true // Faster - returns plain objects
             });
             cacheTimestamp = now;
