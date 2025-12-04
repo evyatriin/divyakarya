@@ -115,12 +115,21 @@ router.get('/', authenticateToken, async (req, res) => {
         const bookings = await Booking.findAll({
             where,
             include: [
-                { model: User, attributes: ['name', 'phone'] },
+                { model: User, attributes: ['name', 'phone', 'email'] },
                 { model: Pandit, attributes: ['name', 'phone'] }
-            ]
+            ],
+            attributes: [
+                'id', 'ceremonyType', 'date', 'time', 'address', 'status',
+                'paymentStatus', 'amount', 'city', 'locationType', 'tradition',
+                'purpose', 'participants', 'havanOption', 'samagriOption',
+                'preferredLanguage', 'customerName', 'customerEmail', 'customerPhone',
+                'createdAt', 'updatedAt'
+            ],
+            order: [['createdAt', 'DESC']]
         });
         res.json(bookings);
     } catch (error) {
+        console.error('Error fetching bookings:', error);
         res.status(500).json({ error: error.message });
     }
 });
