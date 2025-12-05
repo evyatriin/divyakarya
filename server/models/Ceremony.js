@@ -42,6 +42,12 @@ const Ceremony = sequelize.define('Ceremony', {
     reviews: {
         type: DataTypes.JSON, // Array of { user, rating, comment }
         defaultValue: []
+    },
+    basePrice: {
+        type: DataTypes.FLOAT,
+        allowNull: true,
+        defaultValue: 2500,
+        comment: 'Base price for ceremony in INR'
     }
 });
 

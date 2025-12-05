@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
-import { Calendar, MapPin, Clock, CreditCard, Download, ArrowRight } from 'lucide-react';
+import { Calendar, MapPin, Clock, CreditCard, Download, ArrowRight, XCircle, AlertCircle } from 'lucide-react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
@@ -13,11 +13,17 @@ const UserDashboard = () => {
     const [bookings, setBookings] = useState([]);
     const [ceremonies, setCeremonies] = useState([]);
     const [newBooking, setNewBooking] = useState({
-        ceremonyType: '', date: '', time: '', address: '', amount: 1000
+        ceremonyType: '', date: '', time: '', address: ''
     });
+    const [priceInfo, setPriceInfo] = useState(null);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
+    const [successMessage, setSuccessMessage] = useState(null);
+    const [cancellingId, setCancellingId] = useState(null);
+    const [showCancelModal, setShowCancelModal] = useState(null);
+
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
     useEffect(() => {
         fetchBookings();
@@ -25,9 +31,26 @@ const UserDashboard = () => {
         checkForPendingBooking();
     }, []);
 
+    // Fetch price when ceremony type changes
+    useEffect(() => {
+        if (newBooking.ceremonyType) {
+            fetchCeremonyPrice(newBooking.ceremonyType);
+        } else {
+            setPriceInfo(null);
+        }
+    }, [newBooking.ceremonyType]);
+
+    const fetchCeremonyPrice = async (ceremonyType) => {
+        try {
+            const res = await axios.get(`${apiUrl}/api/bookings/ceremony-price/${encodeURIComponent(ceremonyType)}`);
+            setPriceInfo(res.data);
+        } catch (error) {
+            console.error('Error fetching price:', error);
+        }
+    };
+
     const fetchCeremonies = async () => {
         try {
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
             const res = await axios.get(`${apiUrl}/api/ceremonies`);
             setCeremonies(res.data);
         } catch (error) {
@@ -36,64 +59,27 @@ const UserDashboard = () => {
     };
 
     const checkForPendingBooking = async () => {
-        // Check if redirected from ceremony page with booking data
         if (location.state?.prefill) {
             const bookingData = location.state.prefill;
             setNewBooking(bookingData);
-
-            // Auto-submit the booking if all required fields are present
-            if (bookingData.ceremonyType && bookingData.date && bookingData.time && bookingData.address) {
-                await autoSubmitBooking(bookingData);
-            }
-            // Clear the state to prevent re-submission on page refresh
             window.history.replaceState({}, document.title);
             return;
         }
 
-        // Check localStorage for pending booking (from login redirect)
         const pending = localStorage.getItem('pendingBooking');
         if (pending) {
             try {
                 const data = JSON.parse(pending);
                 setNewBooking(data);
                 localStorage.removeItem('pendingBooking');
-                if (data.ceremonyType && data.date && data.time && data.address) {
-                    await autoSubmitBooking(data);
-                }
             } catch (e) {
                 console.error("Error parsing pending booking", e);
             }
         }
     };
 
-    const [successMessage, setSuccessMessage] = useState(null);
-
-    const autoSubmitBooking = async (bookingData) => {
-        setSubmitting(true);
-        setError('');
-        setSuccessMessage(null);
-        try {
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-            const res = await axios.post(`${apiUrl}/api/bookings`, bookingData);
-            await fetchBookings();
-            setNewBooking({ ceremonyType: '', date: '', time: '', address: '', amount: 1000 });
-            setSuccessMessage({
-                id: res.data.id,
-                message: `Booking request sent successfully! Request #${res.data.id}`
-            });
-            // Clear success message after 10 seconds
-            setTimeout(() => setSuccessMessage(null), 10000);
-        } catch (error) {
-            console.error('Error creating booking:', error);
-            setError(error.response?.data?.error || 'Error booking ceremony');
-        } finally {
-            setSubmitting(false);
-        }
-    };
-
     const fetchBookings = async () => {
         try {
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
             const res = await axios.get(`${apiUrl}/api/bookings`);
             setBookings(res.data);
             setLoading(false);
@@ -108,65 +94,65 @@ const UserDashboard = () => {
         setSubmitting(true);
         setError('');
         setSuccessMessage(null);
+
         try {
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-            const res = await axios.post(`${apiUrl}/api/bookings`, newBooking);
-            await fetchBookings();
-            setNewBooking({ ceremonyType: '', date: '', time: '', address: '', amount: 1000 });
-            setSuccessMessage({
-                id: res.data.id,
-                message: `Booking request sent successfully! Request #${res.data.id}`
+            // Step 1: Create booking
+            const res = await axios.post(`${apiUrl}/api/bookings`, {
+                ...newBooking,
+                totalAmount: priceInfo?.totalAmount
             });
-            // Clear success message after 10 seconds
-            setTimeout(() => setSuccessMessage(null), 10000);
+
+            const bookingData = res.data;
+
+            // Step 2: Initiate advance payment
+            await handleAdvancePayment(bookingData.id, bookingData.advanceAmount);
+
         } catch (error) {
             console.error('Error creating booking:', error);
-            const errorMsg = error.response?.data?.error || 'Error booking ceremony';
-            setError(errorMsg);
-        } finally {
+            setError(error.response?.data?.error || 'Error booking ceremony');
             setSubmitting(false);
         }
     };
 
-    const handlePayment = async (bookingId, amount) => {
+    const handleAdvancePayment = async (bookingId, advanceAmount) => {
         try {
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-            const orderRes = await axios.post(`${apiUrl}/api/payments/create-order`, { amount, bookingId });
+            const orderRes = await axios.post(`${apiUrl}/api/payments/create-order`, {
+                bookingId,
+                paymentType: 'advance'
+            });
+
             const options = {
-                key: 'rzp_test_123456',
+                key: import.meta.env.VITE_RAZORPAY_KEY || 'rzp_test_123456',
                 amount: orderRes.data.amount,
                 currency: "INR",
                 name: "DivyaKarya",
-                description: "Ceremony Booking",
+                description: "25% Advance Payment",
                 order_id: orderRes.data.id,
                 handler: async function (response) {
                     try {
-                        await axios.post(`${apiUrl}/api/payments/verify`, {
+                        await axios.post(`${apiUrl}/api/payments/verify-advance`, {
                             razorpay_order_id: response.razorpay_order_id,
                             razorpay_payment_id: response.razorpay_payment_id,
                             razorpay_signature: response.razorpay_signature,
                             bookingId
                         });
-                        fetchBookings();
-                        alert('Payment Successful!');
+                        await fetchBookings();
+                        setNewBooking({ ceremonyType: '', date: '', time: '', address: '' });
+                        setPriceInfo(null);
+                        setSuccessMessage({
+                            id: bookingId,
+                            message: `Booking #${bookingId} confirmed! Advance payment of ₹${advanceAmount} received.`
+                        });
+                        setTimeout(() => setSuccessMessage(null), 10000);
                     } catch (err) {
                         console.error('Payment verification failed:', err);
-                        alert('Payment verification failed. Please contact support.');
+                        setError('Payment verification failed. Please contact support.');
                     }
                 },
                 modal: {
-                    ondismiss: async function () {
-                        console.log('Payment cancelled by user');
-                        try {
-                            await axios.post(`${apiUrl}/api/payments/failure`, {
-                                bookingId,
-                                errorDescription: 'Payment cancelled by user (modal closed)',
-                                razorpayOrderId: orderRes.data.id
-                            });
-                            fetchBookings(); // Refresh to show failed status if we update it
-                        } catch (err) {
-                            console.error('Error reporting payment cancellation:', err);
-                        }
+                    ondismiss: function () {
+                        setError('Payment was cancelled. Please complete payment to confirm booking.');
+                        fetchBookings();
                     }
                 },
                 prefill: {
@@ -176,25 +162,76 @@ const UserDashboard = () => {
                 },
                 theme: { color: "#D97706" }
             };
-            const rzp1 = new window.Razorpay(options);
-            rzp1.on('payment.failed', async function (response) {
-                console.error('Payment failed:', response.error);
-                try {
-                    await axios.post(`${apiUrl}/api/payments/failure`, {
-                        bookingId,
-                        errorDescription: response.error.description || 'Payment failed',
-                        razorpayOrderId: orderRes.data.id
-                    });
-                    fetchBookings();
-                    alert(`Payment Failed: ${response.error.description}`);
-                } catch (err) {
-                    console.error('Error reporting payment failure:', err);
-                }
+
+            const rzp = new window.Razorpay(options);
+            rzp.on('payment.failed', function (response) {
+                setError(`Payment Failed: ${response.error.description}`);
+                axios.post(`${apiUrl}/api/payments/failure`, {
+                    bookingId,
+                    errorDescription: response.error.description
+                });
             });
-            rzp1.open();
+            rzp.open();
         } catch (error) {
-            console.error('Payment error:', error);
-            alert('Payment initiation failed. Please try again.');
+            console.error('Payment initiation error:', error);
+            setError('Failed to initiate payment. Please try again.');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const handleCancelBooking = async (booking) => {
+        setCancellingId(booking.id);
+        try {
+            const res = await axios.put(`${apiUrl}/api/bookings/${booking.id}/cancel`, {
+                reason: 'Cancelled by user'
+            });
+
+            // If refund is applicable, process it
+            if (res.data.booking.refundAmount > 0) {
+                try {
+                    await axios.post(`${apiUrl}/api/payments/process-refund`, {
+                        bookingId: booking.id
+                    });
+                } catch (refundError) {
+                    console.error('Refund processing error:', refundError);
+                    // Refund will be processed manually if automatic fails
+                }
+            }
+
+            await fetchBookings();
+            setShowCancelModal(null);
+            setSuccessMessage({
+                id: booking.id,
+                message: res.data.message
+            });
+            setTimeout(() => setSuccessMessage(null), 10000);
+        } catch (error) {
+            console.error('Error cancelling booking:', error);
+            setError(error.response?.data?.error || 'Failed to cancel booking');
+        } finally {
+            setCancellingId(null);
+        }
+    };
+
+    const getCancellationInfo = (booking) => {
+        const ceremonyDate = new Date(`${booking.date}T${booking.time || '00:00'}`);
+        const now = new Date();
+        const hoursUntil = (ceremonyDate - now) / (1000 * 60 * 60);
+
+        if (hoursUntil >= 24) {
+            return {
+                refundType: 'full',
+                refundAmount: booking.advanceAmount,
+                message: `Full refund of ₹${booking.advanceAmount} will be processed.`
+            };
+        } else {
+            const partialRefund = Math.round(booking.advanceAmount * 0.5 * 100) / 100;
+            return {
+                refundType: 'partial',
+                refundAmount: partialRefund,
+                message: `Partial refund of ₹${partialRefund} (50%) will be processed. (Less than 24 hours before ceremony)`
+            };
         }
     };
 
@@ -227,7 +264,7 @@ const UserDashboard = () => {
                 booking.ceremonyType,
                 booking.date,
                 booking.time,
-                `₹${booking.amount}`
+                `₹${booking.totalAmount || booking.amount}`
             ]],
             theme: 'grid',
             headStyles: { fillColor: [217, 119, 6] }
@@ -235,16 +272,16 @@ const UserDashboard = () => {
 
         const finalY = doc.lastAutoTable.finalY + 10;
         doc.setFontSize(10);
-        doc.text(`Location: ${booking.address || booking.city}`, 20, finalY);
+        doc.text(`Location: ${booking.address}`, 20, finalY);
         if (booking.Pandit) {
             doc.text(`Pandit: ${booking.Pandit.name}`, 20, finalY + 7);
         }
-        doc.text(`Status: ${booking.status.toUpperCase()}`, 20, finalY + 14);
-        doc.text(`Payment Status: ${booking.paymentStatus.toUpperCase()}`, 20, finalY + 21);
+        doc.text(`Advance Paid: ₹${booking.advanceAmount || 0}`, 20, finalY + 14);
+        doc.text(`Remaining (to Pandit): ₹${booking.remainingAmount || 0}`, 20, finalY + 21);
 
         doc.setFontSize(14);
         doc.setFont(undefined, 'bold');
-        doc.text(`Total: ₹${booking.amount}`, 140, finalY + 35);
+        doc.text(`Total: ₹${booking.totalAmount || booking.amount}`, 140, finalY + 35);
 
         doc.setFontSize(8);
         doc.setFont(undefined, 'normal');
@@ -253,6 +290,44 @@ const UserDashboard = () => {
         doc.text('For any queries, contact us at support@divyakarya.com', 20, 285);
 
         doc.save(`invoice-${booking.id}.pdf`);
+    };
+
+    const getStatusBadge = (status) => {
+        const styles = {
+            pending: { bg: '#FEF3C7', color: '#92400E' },
+            accepted: { bg: '#D1FAE5', color: '#065F46' },
+            completed: { bg: '#DBEAFE', color: '#1E40AF' },
+            rejected: { bg: '#FEE2E2', color: '#991B1B' },
+            cancelled: { bg: '#F3F4F6', color: '#6B7280' }
+        };
+        const style = styles[status] || styles.pending;
+        return (
+            <span style={{
+                padding: '0.4rem 1rem',
+                borderRadius: '20px',
+                fontSize: '0.85rem',
+                fontWeight: '600',
+                background: style.bg,
+                color: style.color
+            }}>
+                {status.toUpperCase()}
+            </span>
+        );
+    };
+
+    const getPaymentStatusBadge = (status) => {
+        const colors = {
+            pending: '#F59E0B',
+            advance_paid: '#8B5CF6',
+            paid: '#10B981',
+            failed: '#EF4444',
+            refunded: '#6B7280'
+        };
+        return (
+            <span style={{ fontWeight: '600', color: colors[status] || '#F59E0B' }}>
+                {status.replace('_', ' ').toUpperCase()}
+            </span>
+        );
     };
 
     if (loading) {
@@ -267,6 +342,7 @@ const UserDashboard = () => {
             <div className="grid-responsive" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '2rem', marginBottom: '3rem' }}>
                 <div className="card">
                     <h3 style={{ marginBottom: '1rem' }}>Book a Ceremony</h3>
+
                     {successMessage && (
                         <div style={{
                             background: '#D1FAE5',
@@ -280,6 +356,7 @@ const UserDashboard = () => {
                             {successMessage.message}
                         </div>
                     )}
+
                     {error && (
                         <div style={{
                             background: '#FEE2E2',
@@ -292,6 +369,7 @@ const UserDashboard = () => {
                             {error}
                         </div>
                     )}
+
                     <form onSubmit={handleBook}>
                         <label className="label">Ceremony Type</label>
                         <select
@@ -302,15 +380,55 @@ const UserDashboard = () => {
                         >
                             <option value="">Select Ceremony</option>
                             {ceremonies.map(c => (
-                                <option key={c.id} value={c.title}>{c.title}</option>
+                                <option key={c.id} value={c.title}>{c.title} - ₹{c.basePrice || 2500}</option>
                             ))}
                         </select>
 
+                        {/* Price Breakdown */}
+                        {priceInfo && (
+                            <div style={{
+                                background: 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)',
+                                padding: '1rem',
+                                borderRadius: '8px',
+                                marginBottom: '1rem',
+                                border: '1px solid #F59E0B'
+                            }}>
+                                <div style={{ fontWeight: '600', color: '#92400E', marginBottom: '0.5rem' }}>
+                                    Payment Breakdown
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                                    <span>Total Amount:</span>
+                                    <span style={{ fontWeight: '600' }}>₹{priceInfo.totalAmount}</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem', color: '#D97706' }}>
+                                    <span>Advance (25%):</span>
+                                    <span style={{ fontWeight: '700' }}>₹{priceInfo.advanceAmount}</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: '#78716C' }}>
+                                    <span>Remaining (pay to Pandit):</span>
+                                    <span>₹{priceInfo.remainingAmount}</span>
+                                </div>
+                            </div>
+                        )}
+
                         <label className="label">Date</label>
-                        <input type="date" className="input" required value={newBooking.date} onChange={e => setNewBooking({ ...newBooking, date: e.target.value })} />
+                        <input
+                            type="date"
+                            className="input"
+                            required
+                            value={newBooking.date}
+                            min={new Date().toISOString().split('T')[0]}
+                            onChange={e => setNewBooking({ ...newBooking, date: e.target.value })}
+                        />
 
                         <label className="label">Time</label>
-                        <input type="time" className="input" required value={newBooking.time} onChange={e => setNewBooking({ ...newBooking, time: e.target.value })} />
+                        <input
+                            type="time"
+                            className="input"
+                            required
+                            value={newBooking.time}
+                            onChange={e => setNewBooking({ ...newBooking, time: e.target.value })}
+                        />
 
                         <label className="label">Address</label>
                         <textarea
@@ -326,10 +444,14 @@ const UserDashboard = () => {
                             type="submit"
                             className="btn btn-primary"
                             style={{ width: '100%' }}
-                            disabled={submitting}
+                            disabled={submitting || !priceInfo}
                         >
-                            {submitting ? 'Submitting...' : 'Request Pandit'}
+                            {submitting ? 'Processing...' : `Pay ₹${priceInfo?.advanceAmount || 0} & Book`}
                         </button>
+
+                        <p style={{ fontSize: '0.8rem', color: 'var(--text-light)', marginTop: '0.5rem', textAlign: 'center' }}>
+                            25% advance payment required. Remaining ₹{priceInfo?.remainingAmount || 0} to be paid to Pandit after ceremony.
+                        </p>
                     </form>
                 </div>
 
@@ -356,24 +478,11 @@ const UserDashboard = () => {
                                                     <Clock size={14} /> {b.time}
                                                 </span>
                                                 <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                                                    <MapPin size={14} /> {b.city || b.address}
+                                                    <MapPin size={14} /> {b.address}
                                                 </span>
                                             </div>
                                         </div>
-                                        <span style={{
-                                            padding: '0.4rem 1rem',
-                                            borderRadius: '20px',
-                                            fontSize: '0.85rem',
-                                            fontWeight: '600',
-                                            background: b.status === 'accepted' ? '#D1FAE5' :
-                                                b.status === 'completed' ? '#DBEAFE' :
-                                                    b.status === 'rejected' ? '#FEE2E2' : '#FEF3C7',
-                                            color: b.status === 'accepted' ? '#065F46' :
-                                                b.status === 'completed' ? '#1E40AF' :
-                                                    b.status === 'rejected' ? '#991B1B' : '#92400E'
-                                        }}>
-                                            {b.status.toUpperCase()}
-                                        </span>
+                                        {getStatusBadge(b.status)}
                                     </div>
 
                                     {b.Pandit && (
@@ -389,33 +498,81 @@ const UserDashboard = () => {
                                         </div>
                                     )}
 
+                                    {/* Payment Breakdown */}
+                                    <div style={{
+                                        display: 'grid',
+                                        gridTemplateColumns: 'repeat(3, 1fr)',
+                                        gap: '1rem',
+                                        padding: '1rem',
+                                        background: '#F9FAFB',
+                                        borderRadius: '8px',
+                                        marginBottom: '1rem'
+                                    }}>
+                                        <div>
+                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}>Total Amount</div>
+                                            <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'var(--primary)' }}>
+                                                ₹{b.totalAmount || b.amount || 0}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}>Advance Paid</div>
+                                            <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: b.advancePaid ? '#10B981' : '#F59E0B' }}>
+                                                ₹{b.advancePaid ? b.advanceAmount : 0}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}>Remaining</div>
+                                            <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#6B7280' }}>
+                                                ₹{b.remainingAmount || 0}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Refund Info for cancelled bookings */}
+                                    {b.status === 'cancelled' && b.refundAmount > 0 && (
+                                        <div style={{
+                                            padding: '0.75rem',
+                                            background: b.refundStatus === 'processed' ? '#D1FAE5' : '#FEF3C7',
+                                            borderRadius: '8px',
+                                            marginBottom: '1rem',
+                                            fontSize: '0.9rem'
+                                        }}>
+                                            <strong>Refund:</strong> ₹{b.refundAmount} - {b.refundStatus === 'processed' ? 'Processed ✓' : 'Processing...'}
+                                        </div>
+                                    )}
+
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <div>
-                                            <div style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}>Amount</div>
-                                            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--primary)' }}>
-                                                ₹{b.amount || 0}
-                                            </div>
-                                            <div style={{ fontSize: '0.85rem', marginTop: '0.25rem' }}>
-                                                Payment: <span style={{
-                                                    fontWeight: '600',
-                                                    color: b.paymentStatus === 'paid' ? '#10B981' : '#F59E0B'
-                                                }}>
-                                                    {b.paymentStatus.toUpperCase()}
-                                                </span>
-                                            </div>
+                                            <span style={{ fontSize: '0.85rem' }}>
+                                                Payment: {getPaymentStatusBadge(b.paymentStatus)}
+                                            </span>
                                         </div>
 
                                         <div style={{ display: 'flex', gap: '0.75rem' }}>
-                                            {b.status === 'accepted' && b.paymentStatus === 'pending' && (
+                                            {/* Pay Advance Button */}
+                                            {!b.advancePaid && b.status !== 'cancelled' && b.status !== 'rejected' && (
                                                 <button
-                                                    onClick={() => handlePayment(b.id, b.amount)}
+                                                    onClick={() => handleAdvancePayment(b.id, b.advanceAmount)}
                                                     className="btn btn-primary"
                                                     style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
                                                 >
-                                                    <CreditCard size={16} /> Pay Now
+                                                    <CreditCard size={16} /> Pay ₹{b.advanceAmount}
                                                 </button>
                                             )}
-                                            {b.paymentStatus === 'paid' && (
+
+                                            {/* Cancel Button */}
+                                            {b.status !== 'cancelled' && b.status !== 'completed' && b.status !== 'rejected' && (
+                                                <button
+                                                    onClick={() => setShowCancelModal(b)}
+                                                    className="btn btn-outline"
+                                                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#EF4444', borderColor: '#EF4444' }}
+                                                >
+                                                    <XCircle size={16} /> Cancel
+                                                </button>
+                                            )}
+
+                                            {/* Invoice Button */}
+                                            {b.advancePaid && (
                                                 <button
                                                     onClick={() => generateInvoice(b)}
                                                     className="btn btn-outline"
@@ -463,6 +620,9 @@ const UserDashboard = () => {
                         >
                             <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>{ceremony.icon}</div>
                             <h4 style={{ marginBottom: '0.5rem' }}>{ceremony.title}</h4>
+                            <div style={{ color: 'var(--primary)', fontWeight: '600', marginBottom: '0.5rem' }}>
+                                ₹{ceremony.basePrice || 2500}
+                            </div>
                             <p style={{
                                 color: 'var(--text-light)',
                                 fontSize: '0.9rem',
@@ -490,6 +650,64 @@ const UserDashboard = () => {
                     ))}
                 </div>
             </div>
+
+            {/* Cancel Confirmation Modal */}
+            {showCancelModal && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(0,0,0,0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1000
+                }}>
+                    <div className="card" style={{ maxWidth: '500px', margin: '1rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                            <AlertCircle size={24} color="#EF4444" />
+                            <h3 style={{ color: '#EF4444' }}>Cancel Booking</h3>
+                        </div>
+
+                        <p style={{ marginBottom: '1rem' }}>
+                            Are you sure you want to cancel <strong>{showCancelModal.ceremonyType}</strong> on {showCancelModal.date}?
+                        </p>
+
+                        {showCancelModal.advancePaid && (
+                            <div style={{
+                                padding: '1rem',
+                                background: getCancellationInfo(showCancelModal).refundType === 'full' ? '#D1FAE5' : '#FEF3C7',
+                                borderRadius: '8px',
+                                marginBottom: '1rem'
+                            }}>
+                                <strong>Refund Policy:</strong>
+                                <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.9rem' }}>
+                                    {getCancellationInfo(showCancelModal).message}
+                                </p>
+                            </div>
+                        )}
+
+                        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+                            <button
+                                onClick={() => setShowCancelModal(null)}
+                                className="btn btn-outline"
+                            >
+                                Keep Booking
+                            </button>
+                            <button
+                                onClick={() => handleCancelBooking(showCancelModal)}
+                                className="btn"
+                                disabled={cancellingId === showCancelModal.id}
+                                style={{ background: '#EF4444', color: 'white' }}
+                            >
+                                {cancellingId === showCancelModal.id ? 'Cancelling...' : 'Confirm Cancel'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

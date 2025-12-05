@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
-import { Calendar, DollarSign, TrendingUp, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Calendar, DollarSign, Clock, CheckCircle, XCircle, Plus, Trash2 } from 'lucide-react';
 
 const PanditDashboard = () => {
     const { user } = useAuth();
@@ -12,13 +12,28 @@ const PanditDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [revenuePeriod, setRevenuePeriod] = useState('month');
 
+    // Availability state
+    const [availability, setAvailability] = useState([]);
+    const [showAddSlot, setShowAddSlot] = useState(false);
+    const [newSlot, setNewSlot] = useState({
+        date: new Date().toISOString().split('T')[0],
+        startTime: '09:00',
+        endTime: '18:00'
+    });
+    const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
     useEffect(() => {
         fetchData();
     }, [revenuePeriod]);
 
+    useEffect(() => {
+        fetchAvailability();
+    }, [selectedDate]);
+
     const fetchData = async () => {
         try {
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
             const [bookingsRes, statsRes, revenueRes] = await Promise.all([
                 axios.get(`${apiUrl}/api/bookings`),
                 axios.get(`${apiUrl}/api/pandits/stats`),
@@ -34,9 +49,21 @@ const PanditDashboard = () => {
         }
     };
 
+    const fetchAvailability = async () => {
+        try {
+            const startDate = selectedDate;
+            const endDate = new Date(new Date(selectedDate).getTime() + 6 * 24 * 60 * 60 * 1000)
+                .toISOString().split('T')[0];
+
+            const res = await axios.get(`${apiUrl}/api/availability/pandit/${user.id}?startDate=${startDate}&endDate=${endDate}`);
+            setAvailability(res.data);
+        } catch (error) {
+            console.error('Error fetching availability:', error);
+        }
+    };
+
     const toggleStatus = async () => {
         try {
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
             const res = await axios.put(`${apiUrl}/api/pandits/status`);
             setIsOnline(res.data.isOnline);
         } catch (error) {
@@ -46,7 +73,6 @@ const PanditDashboard = () => {
 
     const updateBookingStatus = async (id, status) => {
         try {
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
             await axios.put(`${apiUrl}/api/bookings/${id}/status`, { status });
             fetchData();
         } catch (error) {
@@ -54,9 +80,60 @@ const PanditDashboard = () => {
         }
     };
 
+    const addAvailabilitySlot = async () => {
+        try {
+            await axios.post(`${apiUrl}/api/availability`, newSlot);
+            setShowAddSlot(false);
+            setNewSlot({
+                date: new Date().toISOString().split('T')[0],
+                startTime: '09:00',
+                endTime: '18:00'
+            });
+            fetchAvailability();
+        } catch (error) {
+            console.error('Error adding slot:', error);
+            alert(error.response?.data?.error || 'Failed to add slot');
+        }
+    };
+
+    const deleteSlot = async (slotId) => {
+        if (!confirm('Delete this availability slot?')) return;
+        try {
+            await axios.delete(`${apiUrl}/api/availability/${slotId}`);
+            fetchAvailability();
+        } catch (error) {
+            console.error('Error deleting slot:', error);
+            alert(error.response?.data?.error || 'Failed to delete slot');
+        }
+    };
+
+    const addWeekSlots = async () => {
+        const slots = [];
+        for (let i = 0; i < 7; i++) {
+            const date = new Date(new Date(selectedDate).getTime() + i * 24 * 60 * 60 * 1000);
+            slots.push({
+                date: date.toISOString().split('T')[0],
+                startTime: '09:00',
+                endTime: '18:00'
+            });
+        }
+        try {
+            await axios.post(`${apiUrl}/api/availability/bulk`, { slots });
+            fetchAvailability();
+        } catch (error) {
+            console.error('Error adding week slots:', error);
+        }
+    };
+
     const upcomingBookings = bookings.filter(b =>
         b.status === 'accepted' && new Date(b.date) >= new Date()
     ).slice(0, 5);
+
+    const getSlotTypeColor = (slot) => {
+        if (slot.slotType === 'booked') return { bg: '#DBEAFE', border: '#3B82F6' };
+        if (slot.slotType === 'blocked') return { bg: '#FEE2E2', border: '#EF4444' };
+        return { bg: '#D1FAE5', border: '#10B981' };
+    };
 
     if (loading) {
         return <div className="container" style={{ marginTop: '2rem' }}>Loading...</div>;
@@ -83,10 +160,10 @@ const PanditDashboard = () => {
             </div>
 
             {/* Statistics Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
                 <div className="card" style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '2rem', color: 'var(--primary)', marginBottom: '0.5rem' }}>{stats.pending}</div>
-                    <div style={{ color: 'var(--text-light)' }}>Pending Requests</div>
+                    <div style={{ color: 'var(--text-light)' }}>Pending</div>
                 </div>
                 <div className="card" style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '2rem', color: '#10B981', marginBottom: '0.5rem' }}>{stats.accepted}</div>
@@ -102,6 +179,138 @@ const PanditDashboard = () => {
                 </div>
             </div>
 
+            {/* Availability Management */}
+            <div className="card" style={{ marginBottom: '2rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Calendar size={24} color="var(--primary)" />
+                        My Availability
+                    </h3>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <input
+                            type="date"
+                            value={selectedDate}
+                            onChange={(e) => setSelectedDate(e.target.value)}
+                            className="input"
+                            style={{ width: 'auto', padding: '0.5rem', marginBottom: 0 }}
+                        />
+                        <button onClick={addWeekSlots} className="btn btn-outline" style={{ padding: '0.5rem 1rem' }}>
+                            + Add Week
+                        </button>
+                        <button onClick={() => setShowAddSlot(true)} className="btn btn-primary" style={{ padding: '0.5rem 1rem' }}>
+                            <Plus size={16} /> Add Slot
+                        </button>
+                    </div>
+                </div>
+
+                {/* Add Slot Modal */}
+                {showAddSlot && (
+                    <div style={{
+                        background: '#F9FAFB',
+                        padding: '1rem',
+                        borderRadius: '8px',
+                        marginBottom: '1rem',
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(4, 1fr)',
+                        gap: '1rem',
+                        alignItems: 'end'
+                    }}>
+                        <div>
+                            <label className="label">Date</label>
+                            <input
+                                type="date"
+                                value={newSlot.date}
+                                onChange={(e) => setNewSlot({ ...newSlot, date: e.target.value })}
+                                className="input"
+                                style={{ marginBottom: 0 }}
+                            />
+                        </div>
+                        <div>
+                            <label className="label">Start Time</label>
+                            <input
+                                type="time"
+                                value={newSlot.startTime}
+                                onChange={(e) => setNewSlot({ ...newSlot, startTime: e.target.value })}
+                                className="input"
+                                style={{ marginBottom: 0 }}
+                            />
+                        </div>
+                        <div>
+                            <label className="label">End Time</label>
+                            <input
+                                type="time"
+                                value={newSlot.endTime}
+                                onChange={(e) => setNewSlot({ ...newSlot, endTime: e.target.value })}
+                                className="input"
+                                style={{ marginBottom: 0 }}
+                            />
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <button onClick={addAvailabilitySlot} className="btn btn-primary">Save</button>
+                            <button onClick={() => setShowAddSlot(false)} className="btn btn-outline">Cancel</button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Availability Slots */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    {availability.length === 0 ? (
+                        <p style={{ color: 'var(--text-light)', textAlign: 'center', padding: '2rem' }}>
+                            No availability set for this week. Click "Add Week" to set up your schedule.
+                        </p>
+                    ) : (
+                        availability.map(slot => {
+                            const colors = getSlotTypeColor(slot);
+                            return (
+                                <div key={slot.id} style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    padding: '0.75rem 1rem',
+                                    background: colors.bg,
+                                    borderLeft: `4px solid ${colors.border}`,
+                                    borderRadius: '8px'
+                                }}>
+                                    <div>
+                                        <strong>{new Date(slot.date).toLocaleDateString('en-IN', { weekday: 'short', month: 'short', day: 'numeric' })}</strong>
+                                        <span style={{ marginLeft: '1rem', color: 'var(--text-light)' }}>
+                                            {slot.startTime} - {slot.endTime}
+                                        </span>
+                                        {slot.Booking && (
+                                            <span style={{ marginLeft: '1rem', fontWeight: '600', color: '#3B82F6' }}>
+                                                📌 {slot.Booking.ceremonyType}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <span style={{
+                                            padding: '0.25rem 0.75rem',
+                                            borderRadius: '12px',
+                                            fontSize: '0.75rem',
+                                            fontWeight: '600',
+                                            background: slot.slotType === 'booked' ? '#3B82F6' : slot.slotType === 'blocked' ? '#EF4444' : '#10B981',
+                                            color: 'white'
+                                        }}>
+                                            {slot.slotType.toUpperCase()}
+                                        </span>
+                                        {slot.slotType !== 'booked' && (
+                                            <button onClick={() => deleteSlot(slot.id)} style={{
+                                                background: 'none',
+                                                border: 'none',
+                                                cursor: 'pointer',
+                                                color: '#EF4444'
+                                            }}>
+                                                <Trash2 size={16} />
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })
+                    )}
+                </div>
+            </div>
+
             <div className="grid-responsive" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '2rem', marginBottom: '2rem' }}>
                 {/* Revenue Section */}
                 <div className="card">
@@ -114,7 +323,7 @@ const PanditDashboard = () => {
                             value={revenuePeriod}
                             onChange={(e) => setRevenuePeriod(e.target.value)}
                             className="input"
-                            style={{ width: 'auto', padding: '0.5rem' }}
+                            style={{ width: 'auto', padding: '0.5rem', marginBottom: 0 }}
                         >
                             <option value="month">This Month</option>
                             <option value="year">This Year</option>
@@ -129,7 +338,7 @@ const PanditDashboard = () => {
                         color: 'white',
                         marginBottom: '1.5rem'
                     }}>
-                        <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Total Earnings</div>
+                        <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>Total Earnings (75% from bookings)</div>
                         <div style={{ fontSize: '2.5rem', fontWeight: 'bold', marginTop: '0.5rem' }}>
                             ₹{revenue.totalRevenue.toLocaleString()}
                         </div>
@@ -183,7 +392,12 @@ const PanditDashboard = () => {
                                 <div style={{ fontWeight: '600', marginBottom: '0.5rem' }}>{b.ceremonyType}</div>
                                 <div style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}>
                                     <div>{b.date} at {b.time}</div>
-                                    <div>{b.city || b.address}</div>
+                                    <div>{b.address}</div>
+                                </div>
+                                <div style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}>
+                                    <span style={{ color: '#10B981', fontWeight: '600' }}>
+                                        You'll receive: ₹{b.remainingAmount || Math.round(b.totalAmount * 0.75)}
+                                    </span>
                                 </div>
                             </div>
                         ))}
@@ -209,7 +423,7 @@ const PanditDashboard = () => {
                                     <th style={{ padding: '0.75rem' }}>Location</th>
                                     <th style={{ padding: '0.75rem' }}>Customer</th>
                                     <th style={{ padding: '0.75rem' }}>Status</th>
-                                    <th style={{ padding: '0.75rem' }}>Amount</th>
+                                    <th style={{ padding: '0.75rem' }}>Your Earning</th>
                                     <th style={{ padding: '0.75rem' }}>Action</th>
                                 </tr>
                             </thead>
@@ -221,11 +435,11 @@ const PanditDashboard = () => {
                                             <div>{b.date}</div>
                                             <div style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}>{b.time}</div>
                                         </td>
-                                        <td style={{ padding: '0.75rem' }}>{b.city || b.address}</td>
+                                        <td style={{ padding: '0.75rem' }}>{b.address}</td>
                                         <td style={{ padding: '0.75rem' }}>
-                                            <div>{b.customerName || b.User?.name}</div>
+                                            <div>{b.User?.name}</div>
                                             <div style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}>
-                                                {b.customerPhone || b.User?.phone}
+                                                {b.User?.phone}
                                             </div>
                                         </td>
                                         <td style={{ padding: '0.75rem' }}>
@@ -236,16 +450,18 @@ const PanditDashboard = () => {
                                                 fontWeight: '600',
                                                 background: b.status === 'accepted' ? '#D1FAE5' :
                                                     b.status === 'completed' ? '#DBEAFE' :
-                                                        b.status === 'rejected' ? '#FEE2E2' : '#FEF3C7',
+                                                        b.status === 'rejected' ? '#FEE2E2' :
+                                                            b.status === 'cancelled' ? '#F3F4F6' : '#FEF3C7',
                                                 color: b.status === 'accepted' ? '#065F46' :
                                                     b.status === 'completed' ? '#1E40AF' :
-                                                        b.status === 'rejected' ? '#991B1B' : '#92400E'
+                                                        b.status === 'rejected' ? '#991B1B' :
+                                                            b.status === 'cancelled' ? '#6B7280' : '#92400E'
                                             }}>
                                                 {b.status}
                                             </span>
                                         </td>
-                                        <td style={{ padding: '0.75rem', fontWeight: '600' }}>
-                                            ₹{b.amount || 0}
+                                        <td style={{ padding: '0.75rem', fontWeight: '600', color: '#10B981' }}>
+                                            ₹{b.remainingAmount || Math.round((b.totalAmount || b.amount) * 0.75)}
                                         </td>
                                         <td style={{ padding: '0.75rem' }}>
                                             {b.status === 'pending' && (
@@ -265,6 +481,15 @@ const PanditDashboard = () => {
                                                         <XCircle size={14} /> Reject
                                                     </button>
                                                 </div>
+                                            )}
+                                            {b.status === 'accepted' && (
+                                                <button
+                                                    onClick={() => updateBookingStatus(b.id, 'completed')}
+                                                    className="btn btn-primary"
+                                                    style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
+                                                >
+                                                    Mark Complete
+                                                </button>
                                             )}
                                         </td>
                                     </tr>

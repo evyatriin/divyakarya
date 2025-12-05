@@ -46,35 +46,33 @@ router.post('/register/pandit', async (req, res) => {
     }
 });
 
-// Login (Generic for now, could be split)
+// Login - Unified login that auto-detects role
 router.post('/login', async (req, res) => {
     try {
-        const { email, password, role } = req.body; // role: 'user' or 'pandit' or 'admin'
+        const { email, password } = req.body;
 
-        let user;
-        let actualRole = role;
+        let user = null;
+        let actualRole = null;
 
-        if (role === 'pandit') {
-            user = await Pandit.findOne({ where: { email } });
-            if (!user) {
-                return res.status(400).json({ message: 'Pandit account not found with this email' });
-            }
-        } else if (role === 'admin') {
-            user = await User.findOne({ where: { email, role: 'admin' } });
-            if (!user) {
-                return res.status(400).json({ message: 'Admin account not found with this email' });
-            }
-        } else {
-            // Regular user login
-            user = await User.findOne({ where: { email } });
-            if (!user) {
-                return res.status(400).json({ message: 'User account not found with this email' });
-            }
-            actualRole = user.role; // Use the role from database (could be 'admin')
+        // First, check if email exists in Pandit table
+        const pandit = await Pandit.findOne({ where: { email } });
+        if (pandit) {
+            user = pandit;
+            actualRole = 'pandit';
         }
 
+        // If not found in Pandit, check User table
         if (!user) {
-            return res.status(400).json({ message: 'Account not found' });
+            const regularUser = await User.findOne({ where: { email } });
+            if (regularUser) {
+                user = regularUser;
+                actualRole = regularUser.role; // 'user' or 'admin'
+            }
+        }
+
+        // If still not found, return error
+        if (!user) {
+            return res.status(400).json({ message: 'No account found with this email' });
         }
 
         const isPasswordValid = await bcrypt.compare(password, user.password);

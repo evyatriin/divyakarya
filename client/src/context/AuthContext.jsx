@@ -19,16 +19,16 @@ export const AuthProvider = ({ children }) => {
         setLoading(false);
     }, []);
 
-    const login = async (email, password, role) => {
+    const login = async (email, password) => {
         try {
             const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-            const res = await axios.post(`${apiUrl}/api/auth/login`, { email, password, role });
+            const res = await axios.post(`${apiUrl}/api/auth/login`, { email, password });
             const { token, user } = res.data;
             localStorage.setItem('token', token);
             localStorage.setItem('user', JSON.stringify(user));
             axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
             setUser(user);
-            return { success: true };
+            return { success: true, role: user.role };
         } catch (error) {
             return { success: false, message: error.response?.data?.message || 'Login failed' };
         }

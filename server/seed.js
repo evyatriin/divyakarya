@@ -49,6 +49,7 @@ const seed = async () => {
                 description: 'The Satyanarayan Puja is a religious worship of the Hindu god Vishnu. Satya means "Truth" and Narayana means, "The highest being".',
                 samagri: ['Kumkum', 'Turmeric', 'Rice', 'Betel Leaves', 'Betel Nuts', 'Flowers', 'Fruits', 'Milk', 'Yogurt', 'Honey', 'Ghee', 'Sugar'],
                 process: ['Sankalp (Vow)', 'Ganesh Puja', 'Kalash Sthapan', 'Navagraha Puja', 'Satyanarayan Katha', 'Havan', 'Aarti'],
+                basePrice: 2500,
                 videos: ['https://www.w3schools.com/html/mov_bbb.mp4'],
                 reviews: [
                     { user: 'Ramesh G.', rating: 5, comment: 'Excellent Pandit ji, very divine experience.' }
@@ -62,6 +63,7 @@ const seed = async () => {
                 description: 'Griha Pravesh is a Hindu ceremony performed on the occasion of an individual\'s first entry into their new home.',
                 samagri: ['Coconut', 'Rice', 'Milk', 'Jaggery', 'Flowers', 'Incense Sticks', 'Camphor', 'Turmeric', 'Kumkum'],
                 process: ['Dwar Puja', 'Boiling of Milk', 'Ganesh Puja', 'Vastu Shanti', 'Havan', 'Kitchen Puja'],
+                basePrice: 5000,
                 videos: [],
                 reviews: []
             },
@@ -73,6 +75,7 @@ const seed = async () => {
                 description: 'Naamkaranam is the traditional Hindu naming ceremony performed to select a newborn\'s name using astrological rules.',
                 samagri: ['Honey', 'Curd', 'Ghee', 'Betel leaves', 'Flowers', 'Turmeric', 'Kumkum', 'New clothes for baby'],
                 process: ['Ganapathi Puja', 'Punyaha Vachanam', 'Kalash Puja', 'Naming Ritual', 'Blessings'],
+                basePrice: 2000,
                 videos: [],
                 reviews: []
             },
@@ -84,6 +87,7 @@ const seed = async () => {
                 description: 'Worship of Lord Ganesha, the remover of obstacles, performed before starting any new venture or ceremony.',
                 samagri: ['Modak', 'Durva Grass', 'Red Flowers', 'Coconut', 'Incense', 'Camphor'],
                 process: ['Avahana', 'Prana Pratishtha', 'Shodashopachara Puja', 'Aarti', 'Prasad Distribution'],
+                basePrice: 1500,
                 videos: [],
                 reviews: []
             },
@@ -95,6 +99,7 @@ const seed = async () => {
                 description: 'The sacred thread ceremony that marks the acceptance of a student by a Guru and an individual\'s entrance into the school of Hinduism.',
                 samagri: ['Sacred Thread (Yagnopavita)', 'Deer Skin (symbolic)', 'Darbha Grass', 'Firewood for Havan', 'Ghee'],
                 process: ['Udaka Shanti', 'Yagnopavita Dharanam', 'Brahmopadesam', 'Bhiksha Vandanam'],
+                basePrice: 7500,
                 videos: [],
                 reviews: []
             },
@@ -106,6 +111,7 @@ const seed = async () => {
                 description: 'Worship of Mother Earth (Bhoomi Devi) before beginning construction on a new site to seek blessings and ensure smooth completion.',
                 samagri: ['Turmeric', 'Kumkum', 'Five types of fruits', 'Coconut', 'Navaratna (9 gems)', 'Milk'],
                 process: ['Ganesh Puja', 'Bhoomi Devi Invocation', 'Digging Ritual', 'Laying Foundation Stone'],
+                basePrice: 3500,
                 videos: [],
                 reviews: []
             },
@@ -117,6 +123,7 @@ const seed = async () => {
                 description: 'A ritual to appease the nine planets (Navagrahas) and reduce their malefic effects while strengthening benevolent ones.',
                 samagri: ['Nine types of grains (Navadhanya)', 'Colored cloth pieces', 'Havan Samagri', 'Ghee', 'Sesame seeds'],
                 process: ['Sankalp', 'Kalash Sthapan', 'Navagraha Invocation', 'Havan for each planet', 'Purnahuti'],
+                basePrice: 5500,
                 videos: [],
                 reviews: []
             },
@@ -128,6 +135,7 @@ const seed = async () => {
                 description: 'The traditional Hindu wedding ceremony uniting two souls in a sacred bond for seven lifetimes.',
                 samagri: ['Garlands', 'Mangalsutra', 'Rice', 'Turmeric', 'Kumkum', 'Coconut', 'Firewood', 'Ghee'],
                 process: ['Ganesh Puja', 'Kanyadaan', 'Panigrahan', 'Saptapadi (Seven Steps)', 'Mangalsutra Dharanam'],
+                basePrice: 15000,
                 videos: [],
                 reviews: []
             },
@@ -139,6 +147,7 @@ const seed = async () => {
                 description: 'Special pujas to nullify the negative effects of Rahu, Ketu, and Mars (Mangal) in one\'s horoscope.',
                 samagri: ['Black Gram', 'Horse Gram', 'Red Lentils', 'Iron/Lead items (symbolic)', 'Red Cloth', 'Black Cloth'],
                 process: ['Sankalp', 'Graha Shanti Havan', 'Mantra Japa', 'Dan (Donation)'],
+                basePrice: 4500,
                 videos: [],
                 reviews: []
             },
@@ -150,6 +159,7 @@ const seed = async () => {
                 description: 'A ceremony celebrated on the completion of 60 years of age, marking a renewal of marital vows.',
                 samagri: ['Kalash', 'New Clothes', 'Mangalsutra', 'Gold/Silver coins', 'Havan Samagri'],
                 process: ['Ganesh Puja', 'Ayush Homam', 'Kalash Abhishekam', 'Muhurtham (Remarriage ritual)'],
+                basePrice: 8000,
                 videos: [],
                 reviews: []
             },
@@ -161,6 +171,7 @@ const seed = async () => {
                 description: 'Worship of a new vehicle to seek protection from accidents and ensure safe journeys.',
                 samagri: ['Lemons', 'Coconut', 'Turmeric', 'Kumkum', 'Flower Garland', 'Camphor'],
                 process: ['Cleaning vehicle', 'Drawing Swastik', 'Breaking Coconut', 'Lemon crushing under wheels'],
+                basePrice: 1500,
                 videos: [],
                 reviews: []
             },
@@ -172,6 +183,7 @@ const seed = async () => {
                 description: 'A ceremony performed before opening a new office or shop to invite prosperity and success.',
                 samagri: ['Lakshmi Idol/Photo', 'Ganesh Idol', 'Account Books', 'Turmeric', 'Kumkum', 'Sweets'],
                 process: ['Ganesh Puja', 'Lakshmi Puja', 'Worship of Account Books/Tools', 'Prasad Distribution'],
+                basePrice: 3000,
                 videos: [],
                 reviews: []
             }

@@ -3,21 +3,28 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
-    const [formData, setFormData] = useState({ email: '', password: '', role: 'user' });
+    const [formData, setFormData] = useState({ email: '', password: '' });
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
     const { login } = useAuth();
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const res = await login(formData.email, formData.password, formData.role);
+        setLoading(true);
+        setError('');
+
+        const res = await login(formData.email, formData.password);
+
         if (res.success) {
-            if (formData.role === 'admin') navigate('/admin');
-            else if (formData.role === 'pandit') navigate('/pandit');
+            // Navigate based on role returned from server
+            if (res.role === 'admin') navigate('/admin');
+            else if (res.role === 'pandit') navigate('/pandit');
             else navigate('/dashboard');
         } else {
             setError(res.message);
         }
+        setLoading(false);
     };
 
     return (
@@ -27,30 +34,13 @@ const Login = () => {
                 {error && <div style={{ color: 'var(--error)', marginBottom: '1rem', textAlign: 'center' }}>{error}</div>}
 
                 <form onSubmit={handleSubmit}>
-                    <div style={{ marginBottom: '1rem' }}>
-                        <label className="label">I am a</label>
-                        <div style={{ display: 'flex', gap: '1rem' }}>
-                            {['user', 'pandit', 'admin'].map(r => (
-                                <label key={r} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                    <input
-                                        type="radio"
-                                        name="role"
-                                        value={r}
-                                        checked={formData.role === r}
-                                        onChange={e => setFormData({ ...formData, role: e.target.value })}
-                                    />
-                                    <span style={{ textTransform: 'capitalize' }}>{r}</span>
-                                </label>
-                            ))}
-                        </div>
-                    </div>
-
                     <label className="label">Email</label>
                     <input
                         type="email"
                         className="input"
                         value={formData.email}
                         onChange={e => setFormData({ ...formData, email: e.target.value })}
+                        placeholder="Enter your email"
                         required
                     />
 
@@ -60,11 +50,20 @@ const Login = () => {
                         className="input"
                         value={formData.password}
                         onChange={e => setFormData({ ...formData, password: e.target.value })}
+                        placeholder="Enter your password"
                         required
                     />
 
-                    <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>Login</button>
+                    <button
+                        type="submit"
+                        className="btn btn-primary"
+                        style={{ width: '100%' }}
+                        disabled={loading}
+                    >
+                        {loading ? 'Logging in...' : 'Login'}
+                    </button>
                 </form>
+
                 <p style={{ marginTop: '1rem', textAlign: 'center', fontSize: '0.9rem' }}>
                     Don't have an account? <Link to="/register" style={{ color: 'var(--primary)' }}>Register</Link>
                 </p>

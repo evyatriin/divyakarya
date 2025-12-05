@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const sequelize = require('./config/database');
 const path = require('path');
+const { generalLimiter, bookingLimiter, authLimiter, paymentLimiter } = require('./middleware/rateLimiter');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -26,16 +27,21 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Apply general rate limiting to all routes
+app.use(generalLimiter);
+
 const { User, Pandit, Booking } = require('./models');
 const authRoutes = require('./routes/auth');
 
-app.use('/api/auth', authRoutes);
-app.use('/api/bookings', require('./routes/bookings'));
+// Apply specific rate limiters to sensitive routes
+app.use('/api/auth', authLimiter, authRoutes);
+app.use('/api/bookings', bookingLimiter, require('./routes/bookings'));
 app.use('/api/pandits', require('./routes/pandits'));
 app.use('/api/admin', require('./routes/admin'));
-app.use('/api/payments', require('./routes/payments'));
+app.use('/api/payments', paymentLimiter, require('./routes/payments'));
 app.use('/api/ceremonies', require('./routes/ceremonies'));
 app.use('/api/pages', require('./routes/pages'));
+app.use('/api/availability', require('./routes/availability'));
 
 // Root route for health check
 app.get('/', (req, res) => {
