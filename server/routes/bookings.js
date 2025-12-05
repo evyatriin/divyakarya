@@ -96,6 +96,14 @@ router.post('/public', async (req, res) => {
 // Create Booking (Authenticated User) - Requires 25% advance payment
 router.post('/', authenticateToken, async (req, res) => {
     try {
+        // Only regular users can book ceremonies
+        if (req.user.role === 'pandit') {
+            return res.status(403).json({ error: 'Pandits cannot book ceremonies for themselves' });
+        }
+        if (req.user.role === 'admin') {
+            return res.status(403).json({ error: 'Admins cannot book ceremonies for themselves' });
+        }
+
         const { ceremonyType, date, time, address, totalAmount: providedAmount } = req.body;
 
         // Validate required fields
