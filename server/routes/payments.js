@@ -4,6 +4,8 @@ const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const authenticateToken = require('../middleware/auth');
 const { Booking } = require('../models');
+const logger = require('../utils/logger');
+const { createOrderValidation, verifyPaymentValidation, idParamValidation } = require('../middleware/validators');
 
 const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
@@ -54,7 +56,7 @@ router.post('/create-order', authenticateToken, async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Error creating order:', error);
+        logger.error('Error creating order', error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -97,7 +99,7 @@ router.post('/verify-advance', authenticateToken, async (req, res) => {
             res.status(400).json({ status: 'failure', message: 'Invalid signature' });
         }
     } catch (error) {
-        console.error('Error verifying advance:', error);
+        logger.error('Error verifying advance', error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -176,7 +178,7 @@ router.post('/process-refund', authenticateToken, async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Error processing refund:', error);
+        logger.error('Error processing refund', error);
 
         // Handle Razorpay-specific errors
         if (error.error && error.error.description) {
@@ -204,7 +206,7 @@ router.get('/refund-status/:bookingId', authenticateToken, async (req, res) => {
                 const refund = await razorpay.refunds.fetch(booking.refundId);
                 razorpayRefundStatus = refund.status;
             } catch (e) {
-                console.error('Error fetching refund status from Razorpay:', e);
+                logger.error('Error fetching refund from Razorpay', e);
             }
         }
 
@@ -216,7 +218,7 @@ router.get('/refund-status/:bookingId', authenticateToken, async (req, res) => {
             razorpayStatus: razorpayRefundStatus
         });
     } catch (error) {
-        console.error('Error getting refund status:', error);
+        logger.error('Error getting refund status', error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -234,13 +236,13 @@ router.post('/failure', authenticateToken, async (req, res) => {
         // Only update if not already paid
         if (booking.paymentStatus !== 'paid' && booking.paymentStatus !== 'advance_paid') {
             booking.paymentStatus = 'failed';
-            console.log(`Payment failed for booking ${bookingId}: ${errorDescription}`);
+            logger.warn('Payment failed', { bookingId, errorDescription });
             await booking.save();
         }
 
         res.json({ status: 'recorded' });
     } catch (error) {
-        console.error('Error recording payment failure:', error);
+        logger.error('Error recording payment failure', error);
         res.status(500).json({ error: error.message });
     }
 });
