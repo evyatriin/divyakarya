@@ -3,51 +3,53 @@ const router = express.Router();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { User, Pandit } = require('../models');
+const logger = require('../utils/logger');
+const { loginValidation, userRegistrationValidation, panditRegistrationValidation } = require('../middleware/validators');
 
 // Register User
-router.post('/register/user', async (req, res) => {
+router.post('/register/user', userRegistrationValidation, async (req, res) => {
     try {
         const { name, email, password, phone } = req.body;
 
-        // Check if user already exists
         const existingUser = await User.findOne({ where: { email } });
         if (existingUser) {
             return res.status(400).json({ error: 'Email already registered' });
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        const user = await User.create({ name, email, password: hashedPassword, phone });
+        await User.create({ name, email, password: hashedPassword, phone });
+        logger.info('User registered', { email });
         res.status(201).json({ message: 'User registered successfully' });
     } catch (error) {
-        console.error('User registration error:', error);
-        res.status(500).json({ error: error.message });
+        logger.error('User registration error', error);
+        res.status(500).json({ error: 'Registration failed. Please try again.' });
     }
 });
 
 // Register Pandit
-router.post('/register/pandit', async (req, res) => {
+router.post('/register/pandit', panditRegistrationValidation, async (req, res) => {
     try {
         const { name, email, password, phone, specialization, experience } = req.body;
 
-        // Check if pandit already exists
         const existingPandit = await Pandit.findOne({ where: { email } });
         if (existingPandit) {
             return res.status(400).json({ error: 'Email already registered' });
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        const pandit = await Pandit.create({
+        await Pandit.create({
             name, email, password: hashedPassword, phone, specialization, experience: parseInt(experience) || 0
         });
+        logger.info('Pandit registered', { email });
         res.status(201).json({ message: 'Pandit registered successfully' });
     } catch (error) {
-        console.error('Pandit registration error:', error);
-        res.status(500).json({ error: error.message });
+        logger.error('Pandit registration error', error);
+        res.status(500).json({ error: 'Registration failed. Please try again.' });
     }
 });
 
 // Login - Unified login that auto-detects role
-router.post('/login', async (req, res) => {
+router.post('/login', loginValidation, async (req, res) => {
     try {
         const { email, password } = req.body;
 
@@ -66,22 +68,23 @@ router.post('/login', async (req, res) => {
             const regularUser = await User.findOne({ where: { email } });
             if (regularUser) {
                 user = regularUser;
-                actualRole = regularUser.role; // 'user' or 'admin'
+                actualRole = regularUser.role;
             }
         }
 
-        // If still not found, return error
         if (!user) {
             return res.status(400).json({ message: 'No account found with this email' });
         }
 
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
+            logger.warn('Failed login attempt', { email });
             return res.status(403).json({ message: 'Invalid password' });
         }
 
         const token = jwt.sign({ id: user.id, role: actualRole }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
+        logger.info('User logged in', { email, role: actualRole });
         res.json({
             token,
             user: {
@@ -93,7 +96,7 @@ router.post('/login', async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Login error:', error);
+        logger.error('Login error', error);
         res.status(500).json({ error: 'Login failed. Please try again.' });
     }
 });

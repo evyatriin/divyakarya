@@ -1,12 +1,19 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 const sequelize = require('./config/database');
-const path = require('path');
+const logger = require('./utils/logger');
 const { generalLimiter, bookingLimiter, authLimiter, paymentLimiter } = require('./middleware/rateLimiter');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Security headers
+app.use(helmet({
+    contentSecurityPolicy: false, // Disable for API
+    crossOriginEmbedderPolicy: false
+}));
 
 const allowedOrigins = [
     'http://localhost:5173',
@@ -25,7 +32,8 @@ app.use(cors({
     },
     credentials: true
 }));
-app.use(express.json());
+
+app.use(express.json({ limit: '10kb' })); // Limit body size
 
 // Apply general rate limiting to all routes
 app.use(generalLimiter);
@@ -43,63 +51,69 @@ app.use('/api/ceremonies', require('./routes/ceremonies'));
 app.use('/api/pages', require('./routes/pages'));
 app.use('/api/availability', require('./routes/availability'));
 
-// Root route for health check
-app.get('/', (req, res) => {
-    console.log('Health check request received');
-    res.json({ status: 'ok', message: 'Server is running', env: process.env.NODE_ENV });
+// Health check with DB status
+app.get('/', async (req, res) => {
+    try {
+        await sequelize.authenticate();
+        res.json({ status: 'ok', message: 'Server is running', db: 'connected' });
+    } catch {
+        res.status(503).json({ status: 'degraded', message: 'Server running, DB issue' });
+    }
 });
 
-// Catch-all for debugging 404s - Express 5 compatible
+// 404 handler
 app.use((req, res) => {
-    console.log(`404 Not Found: ${req.originalUrl}`);
+    logger.warn('Route not found', { path: req.originalUrl, method: req.method });
     res.status(404).json({
         error: 'Not Found',
-        path: req.originalUrl,
-        message: 'The requested resource was not found on this server'
+        path: req.originalUrl
     });
 });
 
-// Initialize database (for serverless)
+// Global error handler
+app.use((err, req, res, next) => {
+    logger.error('Unhandled error', err, { path: req.originalUrl });
+    res.status(500).json({ error: 'Internal server error' });
+});
+
+// Initialize database
 let dbInitialized = false;
 
 async function initializeDatabase() {
     if (dbInitialized) {
-        console.log('[DB] Already initialized, skipping');
+        logger.debug('Database already initialized');
         return;
     }
 
     try {
-        console.log('[DB] Starting database sync with alter: true...');
-        // Sync database - use alter to add missing columns without dropping data
+        logger.info('Starting database sync...');
         await sequelize.sync({ alter: true });
-        console.log('[DB] Database synced successfully with all columns');
+        logger.info('Database synced successfully');
         dbInitialized = true;
     } catch (err) {
-        console.error('[DB] Sync failed:', err.message);
-        // Try to at least authenticate if sync fails
+        logger.error('Database sync failed', err);
         try {
             await sequelize.authenticate();
-            console.log('[DB] Connection authenticated (sync failed but connected)');
+            logger.info('Database connection authenticated');
             dbInitialized = true;
         } catch (authErr) {
-            console.error('[DB] Authentication also failed:', authErr.message);
+            logger.error('Database authentication failed', authErr);
             throw err;
         }
     }
 }
 
-// Start server (for local development)
+// Start server (local development)
 if (require.main === module) {
     initializeDatabase().then(() => {
         app.listen(PORT, () => {
-            console.log(`Server running on port ${PORT}`);
+            logger.info(`Server running on port ${PORT}`);
         });
     }).catch(err => {
-        console.error('Failed to initialize:', err);
+        logger.error('Failed to initialize', err);
         process.exit(1);
     });
 }
 
-// Export for serverless
 module.exports = app;
 module.exports.initializeDatabase = initializeDatabase;
