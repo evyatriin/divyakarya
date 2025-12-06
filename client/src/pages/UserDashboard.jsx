@@ -399,7 +399,21 @@ const UserDashboard = () => {
     }
 
     return (
-        <div className="container animate-fade-in" style={{ marginTop: '2rem', paddingBottom: '3rem' }}>
+        <div className="container animate-fade-in" style={{ marginTop: '5rem', paddingBottom: '3rem' }}>
+            {/* Verification Warning */}
+            {user && !user.isEmailVerified && (
+                <div style={{
+                    backgroundColor: '#FEF3C7', border: '1px solid #F59E0B', color: '#B45309',
+                    padding: '1rem', borderRadius: '0.5rem', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '1rem'
+                }}>
+                    <div style={{ fontSize: '1.5rem' }}>⚠️</div>
+                    <div>
+                        <strong>Email not verified.</strong> Please check your inbox for the verification link.
+                    </div>
+                </div>
+            )}
+
+            {/* Success Message */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
                 <h1 style={{ margin: 0, color: 'var(--primary)' }}>Namaste, {user.name}</h1>
                 <button

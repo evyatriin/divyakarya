@@ -184,6 +184,19 @@ const PanditDashboard = () => {
 
     return (
         <div className="container animate-fade-in" style={{ marginTop: '2rem' }}>
+            {/* Verification Warning */}
+            {user && !user.isEmailVerified && (
+                <div style={{
+                    backgroundColor: '#FEF3C7', border: '1px solid #F59E0B', color: '#B45309',
+                    padding: '1rem', borderRadius: '0.5rem', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '1rem'
+                }}>
+                    <div style={{ fontSize: '1.5rem' }}>⚠️</div>
+                    <div>
+                        <strong>Email not verified.</strong> Please check your inbox for the verification link.
+                    </div>
+                </div>
+            )}
+
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>

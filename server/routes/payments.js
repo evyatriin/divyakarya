@@ -57,7 +57,16 @@ router.post('/create-order', authenticateToken, async (req, res) => {
         });
     } catch (error) {
         logger.error('Error creating order', error);
-        res.status(500).json({ error: error.message });
+
+        // Handle Razorpay specific errors
+        if (error.statusCode) {
+            return res.status(error.statusCode).json({
+                error: error.error?.description || error.message || 'Payment provider error',
+                code: error.error?.code
+            });
+        }
+
+        res.status(500).json({ error: error.message || 'Internal Server Error' });
     }
 });
 

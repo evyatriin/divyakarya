@@ -19,10 +19,23 @@ router.post('/register/user', userRegistrationValidation, async (req, res) => {
             return res.status(400).json({ error: 'Email already registered' });
         }
 
+        const verificationToken = crypto.randomBytes(32).toString('hex');
         const hashedPassword = await bcrypt.hash(password, 10);
-        await User.create({ name, email, password: hashedPassword, phone });
+
+        await User.create({
+            name,
+            email,
+            password: hashedPassword,
+            phone,
+            emailVerificationToken: verificationToken,
+            isEmailVerified: false
+        });
+
+        const origin = req.headers.origin || 'http://localhost:5173';
+        await sendVerificationEmail(email, verificationToken, origin);
+
         logger.info('User registered', { email });
-        res.status(201).json({ message: 'User registered successfully' });
+        res.status(201).json({ message: 'Registration successful! Please check your email to verify your account.' });
     } catch (error) {
         logger.error('User registration error', error);
         res.status(500).json({ error: 'Registration failed. Please try again.' });
@@ -39,12 +52,26 @@ router.post('/register/pandit', panditRegistrationValidation, async (req, res) =
             return res.status(400).json({ error: 'Email already registered' });
         }
 
+        const verificationToken = crypto.randomBytes(32).toString('hex');
         const hashedPassword = await bcrypt.hash(password, 10);
+
         await Pandit.create({
-            name, email, password: hashedPassword, phone, specialization, experience: parseInt(experience) || 0
+            name,
+            email,
+            password: hashedPassword,
+            phone,
+            specialization,
+            experience: parseInt(experience) || 0,
+            emailVerificationToken: verificationToken,
+            isEmailVerified: false,
+            isVerified: false // Admin verification
         });
+
+        const origin = req.headers.origin || 'http://localhost:5173';
+        await sendVerificationEmail(email, verificationToken, origin);
+
         logger.info('Pandit registered', { email });
-        res.status(201).json({ message: 'Pandit registered successfully' });
+        res.status(201).json({ message: 'Registration successful! Please check your email to verify your account.' });
     } catch (error) {
         logger.error('Pandit registration error', error);
         res.status(500).json({ error: 'Registration failed. Please try again.' });
@@ -95,7 +122,8 @@ router.post('/login', loginValidation, async (req, res) => {
                 name: user.name,
                 email: user.email,
                 phone: user.phone,
-                role: actualRole
+                role: actualRole,
+                isEmailVerified: user.isEmailVerified
             }
         });
     } catch (error) {
@@ -186,10 +214,36 @@ router.post('/reset-password', async (req, res) => {
     }
 });
 
-// Verify Email (optional step if needed)
+// Verify Email
 router.get('/verify-email', async (req, res) => {
-    // Implementation can be added if we send verification emails on signup
-    res.json({ message: 'Verification logic placeholder' });
+    try {
+        const { token } = req.query;
+        if (!token) return res.status(400).json({ error: 'Verification token is required' });
+
+        // Find user or pandit with this token
+        let account = await User.findOne({ where: { emailVerificationToken: token } });
+        let role = 'user';
+
+        if (!account) {
+            account = await Pandit.findOne({ where: { emailVerificationToken: token } });
+            role = 'pandit';
+        }
+
+        if (!account) {
+            return res.status(400).json({ error: 'Invalid or expired verification token' });
+        }
+
+        // Verify account
+        account.isEmailVerified = true;
+        account.emailVerificationToken = null;
+        await account.save();
+
+        logger.info('Email verified', { email: account.email, role });
+        res.json({ message: 'Email verified successfully! You can now login.' });
+    } catch (error) {
+        logger.error('Email verification error', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
 });
 
 module.exports = router;
