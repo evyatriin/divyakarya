@@ -2,8 +2,11 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
+const { Op } = require('sequelize');
 const { User, Pandit } = require('../models');
 const logger = require('../utils/logger');
+const { sendPasswordResetEmail, sendVerificationEmail } = require('../utils/emailService');
 const { loginValidation, userRegistrationValidation, panditRegistrationValidation } = require('../middleware/validators');
 
 // Register User
@@ -99,6 +102,94 @@ router.post('/login', loginValidation, async (req, res) => {
         logger.error('Login error', error);
         res.status(500).json({ error: 'Login failed. Please try again.' });
     }
+});
+
+// Forgot Password
+router.post('/forgot-password', async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email) return res.status(400).json({ error: 'Email is required' });
+
+        // Find user or pandit
+        let account = await User.findOne({ where: { email } });
+        let role = 'user';
+        if (!account) {
+            account = await Pandit.findOne({ where: { email } });
+            role = 'pandit';
+        }
+
+        if (!account) {
+            // Check specific logic: don't reveal if email exists or not? 
+            // For now, let's say "If an account exists, email sent"
+            return res.json({ message: 'If an account exists with this email, a reset link has been sent.' });
+        }
+
+        // Generate token
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        const passwordResetExpires = new Date(Date.now() + 3600000); // 1 hour
+
+        account.passwordResetToken = resetToken;
+        account.passwordResetExpires = passwordResetExpires;
+        await account.save();
+
+        // Send email
+        const origin = req.headers.origin || 'http://localhost:5173';
+        await sendPasswordResetEmail(account.email, resetToken, origin);
+
+        logger.info('Password reset requested', { email, role });
+        res.json({ message: 'If an account exists with this email, a reset link has been sent.' });
+    } catch (error) {
+        logger.error('Forgot password error', error);
+        res.status(500).json({ error: 'Something went wrong requested' });
+    }
+});
+
+// Reset Password
+router.post('/reset-password', async (req, res) => {
+    try {
+        const { token, password } = req.body;
+        if (!token || !password) return res.status(400).json({ error: 'Token and password are required' });
+
+        // Find account with valid token
+        let account = await User.findOne({
+            where: {
+                passwordResetToken: token,
+                passwordResetExpires: { [Op.gt]: new Date() }
+            }
+        });
+
+        if (!account) {
+            account = await Pandit.findOne({
+                where: {
+                    passwordResetToken: token,
+                    passwordResetExpires: { [Op.gt]: new Date() }
+                }
+            });
+        }
+
+        if (!account) {
+            return res.status(400).json({ error: 'Invalid or expired token' });
+        }
+
+        // Update password
+        const hashedPassword = await bcrypt.hash(password, 10);
+        account.password = hashedPassword;
+        account.passwordResetToken = null;
+        account.passwordResetExpires = null;
+        await account.save();
+
+        logger.info('Password reset successful', { email: account.email });
+        res.json({ message: 'Password reset successfully. You can now login.' });
+    } catch (error) {
+        logger.error('Reset password error', error);
+        res.status(500).json({ error: 'Something went wrong' });
+    }
+});
+
+// Verify Email (optional step if needed)
+router.get('/verify-email', async (req, res) => {
+    // Implementation can be added if we send verification emails on signup
+    res.json({ message: 'Verification logic placeholder' });
 });
 
 module.exports = router;
