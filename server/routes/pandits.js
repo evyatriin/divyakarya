@@ -263,6 +263,56 @@ router.get('/revenue', authenticateToken, async (req, res) => {
     }
 });
 
+// Get own profile (pandit)
+router.get('/profile', authenticateToken, async (req, res) => {
+    try {
+        if (req.user.role !== 'pandit') {
+            return res.status(403).json({ error: 'Pandit access required' });
+        }
+
+        const pandit = await Pandit.findByPk(req.user.id, {
+            attributes: { exclude: ['password'] }
+        });
+
+        if (!pandit) return res.status(404).json({ error: 'Pandit not found' });
+
+        res.json(pandit);
+    } catch (error) {
+        logger.error('Error fetching pandit profile', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Update own profile (pandit)
+router.put('/profile', authenticateToken, async (req, res) => {
+    try {
+        if (req.user.role !== 'pandit') {
+            return res.status(403).json({ error: 'Pandit access required' });
+        }
+
+        const pandit = await Pandit.findByPk(req.user.id);
+        if (!pandit) return res.status(404).json({ error: 'Pandit not found' });
+
+        const { name, phone, bio, photo, languages, experience, specialization } = req.body;
+
+        await pandit.update({
+            name: name || pandit.name,
+            phone: phone || pandit.phone,
+            bio: bio !== undefined ? bio : pandit.bio,
+            photo: photo !== undefined ? photo : pandit.photo,
+            languages: languages !== undefined ? languages : pandit.languages,
+            experience: experience !== undefined ? parseInt(experience) : pandit.experience,
+            specialization: specialization !== undefined ? specialization : pandit.specialization
+        });
+
+        logger.info('Pandit profile updated', { panditId: pandit.id });
+        res.json(pandit);
+    } catch (error) {
+        logger.error('Error updating pandit profile', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Get pandit dashboard stats
 router.get('/stats', authenticateToken, async (req, res) => {
     try {

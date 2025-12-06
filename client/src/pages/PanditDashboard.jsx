@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
-import { Calendar, DollarSign, Clock, CheckCircle, XCircle, Plus, Trash2 } from 'lucide-react';
+import { Calendar, DollarSign, Clock, CheckCircle, XCircle, Plus, Trash2, Edit } from 'lucide-react';
 
 const PanditDashboard = () => {
-    const { user } = useAuth();
+    const { user, updateUser } = useAuth();
     const [bookings, setBookings] = useState([]);
     const [stats, setStats] = useState({ pending: 0, accepted: 0, completed: 0, thisMonth: 0 });
     const [revenue, setRevenue] = useState({ totalRevenue: 0, totalCeremonies: 0, perCeremony: [], aggregateByCeremony: {} });
@@ -21,6 +21,14 @@ const PanditDashboard = () => {
         endTime: '18:00'
     });
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+
+    // Profile state
+    const [showProfileModal, setShowProfileModal] = useState(false);
+    const [profileForm, setProfileForm] = useState({
+        name: '', phone: '', bio: '', photo: '', experience: 0, specialization: ''
+    });
+    const [profileError, setProfileError] = useState('');
+    const [profileSuccess, setProfileSuccess] = useState('');
 
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -129,6 +137,41 @@ const PanditDashboard = () => {
         b.status === 'accepted' && new Date(b.date) >= new Date()
     ).slice(0, 5);
 
+    const openProfileModal = async () => {
+        try {
+            const res = await axios.get(`${apiUrl}/api/pandits/profile`);
+            const p = res.data;
+            setProfileForm({
+                name: p.name || '',
+                phone: p.phone || '',
+                bio: p.bio || '',
+                photo: p.photo || '',
+                experience: p.experience || 0,
+                specialization: p.specialization || ''
+            });
+            setShowProfileModal(true);
+            setProfileError('');
+            setProfileSuccess('');
+        } catch (error) {
+            console.error('Error fetching profile:', error);
+        }
+    };
+
+    const handleUpdateProfile = async (e) => {
+        e.preventDefault();
+        setProfileError('');
+        setProfileSuccess('');
+        try {
+            const res = await axios.put(`${apiUrl}/api/pandits/profile`, profileForm);
+            updateUser(res.data);
+            setProfileSuccess('Profile updated successfully!');
+            setTimeout(() => setShowProfileModal(false), 1500);
+        } catch (error) {
+            console.error('Error updating profile:', error);
+            setProfileError(error.response?.data?.error || 'Failed to update profile');
+        }
+    };
+
     const getSlotTypeColor = (slot) => {
         if (slot.slotType === 'booked') return { bg: '#DBEAFE', border: '#3B82F6' };
         if (slot.slotType === 'blocked') return { bg: '#FEE2E2', border: '#EF4444' };
@@ -143,7 +186,16 @@ const PanditDashboard = () => {
         <div className="container animate-fade-in" style={{ marginTop: '2rem' }}>
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                <h1 style={{ color: 'var(--primary)' }}>Pandit Dashboard</h1>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <h1 style={{ color: 'var(--primary)', margin: 0 }}>Pandit Dashboard</h1>
+                    <button
+                        onClick={openProfileModal}
+                        className="btn btn-outline"
+                        style={{ padding: '0.4rem 0.8rem', fontSize: '0.9rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}
+                    >
+                        <Edit size={16} /> Edit Profile
+                    </button>
+                </div>
                 <button
                     onClick={toggleStatus}
                     className={`btn ${isOnline ? 'btn-primary' : 'btn-outline'}`}
@@ -499,7 +551,96 @@ const PanditDashboard = () => {
                     </div>
                 )}
             </div>
-        </div>
+
+            {/* Profile Edit Modal */}
+            {
+                showProfileModal && (
+                    <div style={{
+                        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                        background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+                    }}>
+                        <div className="card" style={{ maxWidth: '500px', width: '90%', maxHeight: '90vh', overflowY: 'auto' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+                                <h3 style={{ margin: 0 }}>Edit Profile</h3>
+                                <button onClick={() => setShowProfileModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+                                    <XCircle size={24} color="#6B7280" />
+                                </button>
+                            </div>
+
+                            {profileSuccess && <div style={{ color: 'green', marginBottom: '1rem', textAlign: 'center' }}>{profileSuccess}</div>}
+                            {profileError && <div style={{ color: 'red', marginBottom: '1rem', textAlign: 'center' }}>{profileError}</div>}
+
+                            <form onSubmit={handleUpdateProfile}>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                    <div>
+                                        <label className="label">Full Name</label>
+                                        <input
+                                            type="text" className="input" required
+                                            value={profileForm.name}
+                                            onChange={e => setProfileForm({ ...profileForm, name: e.target.value })}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="label">Phone</label>
+                                        <input
+                                            type="tel" className="input" required
+                                            value={profileForm.phone}
+                                            onChange={e => setProfileForm({ ...profileForm, phone: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+
+                                <label className="label">Photo URL</label>
+                                <input
+                                    type="url" className="input" placeholder="https://example.com/your-photo.jpg"
+                                    value={profileForm.photo}
+                                    onChange={e => setProfileForm({ ...profileForm, photo: e.target.value })}
+                                />
+                                {profileForm.photo && (
+                                    <img
+                                        src={profileForm.photo}
+                                        alt="Preview"
+                                        style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '50%', marginBottom: '1rem', border: '2px solid #ddd' }}
+                                        onError={(e) => e.target.style.display = 'none'}
+                                    />
+                                )}
+
+                                <label className="label">Bio / About Me</label>
+                                <textarea
+                                    className="input" rows="3" placeholder="Tell users about yourself..."
+                                    value={profileForm.bio}
+                                    onChange={e => setProfileForm({ ...profileForm, bio: e.target.value })}
+                                />
+
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                    <div>
+                                        <label className="label">Experience (Years)</label>
+                                        <input
+                                            type="number" className="input" required min="0"
+                                            value={profileForm.experience}
+                                            onChange={e => setProfileForm({ ...profileForm, experience: e.target.value })}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="label">Specialization</label>
+                                        <input
+                                            type="text" className="input" required
+                                            value={profileForm.specialization}
+                                            onChange={e => setProfileForm({ ...profileForm, specialization: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+                                    <button type="button" onClick={() => setShowProfileModal(false)} className="btn btn-outline">Cancel</button>
+                                    <button type="submit" className="btn btn-primary">Save Changes</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )
+            }
+        </div >
     );
 };
 
