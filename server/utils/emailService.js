@@ -73,8 +73,41 @@ const sendVerificationEmail = async (email, verifyToken, origin) => {
     return sendEmail({ to: email, subject, html });
 };
 
+const sendBookingConfirmation = async (bookingData) => {
+    const subject = 'Booking Confirmation - DivyaKarya';
+    const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+            <h2 style="color: #D97706;">Booking Received! 🕉️</h2>
+            <p>Dear ${bookingData.customerName || 'User'},</p>
+            <p>We have successfully received your booking request. Here are the details:</p>
+            
+            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="color: #F59E0B; margin-top: 0;">${bookingData.ceremonyType}</h3>
+                <p><strong>Date:</strong> ${bookingData.date}</p>
+                <p><strong>Time:</strong> ${bookingData.time}</p>
+                <p><strong>Location:</strong> ${bookingData.address}</p>
+                <p><strong>Amount:</strong> ₹${bookingData.totalAmount}</p>
+            </div>
+
+            ${bookingData.paymentRequired ? `
+            <div style="background-color: #fff3cd; color: #856404; padding: 15px; border-radius: 8px; margin: 20px 0; border: 1px solid #ffeeba;">
+                <strong>Action Required:</strong> Please complete the advance payment of ₹${bookingData.paymentRequired} to confirm your slot.
+            </div>` : ''}
+
+            <p>We will contact you at <strong>${bookingData.customerPhone}</strong> or <strong>${bookingData.customerEmail}</strong> shortly.</p>
+            
+            <p style="margin-top: 30px; font-size: 0.9em; color: #666;">
+                Best regards,<br>
+                DivyaKarya Team
+            </p>
+        </div>
+    `;
+    return sendEmail({ to: bookingData.customerEmail, subject, html });
+};
+
 module.exports = {
     sendEmail,
     sendPasswordResetEmail,
-    sendVerificationEmail
+    sendVerificationEmail,
+    sendBookingConfirmation
 };

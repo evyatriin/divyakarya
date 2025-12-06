@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { Booking, User, Pandit, Ceremony, PanditAvailability } = require('../models');
 const authenticateToken = require('../middleware/auth');
-const { sendBookingConfirmation } = require('../services/emailService');
+const { sendBookingConfirmation } = require('../utils/emailService');
 const logger = require('../utils/logger');
 const { createBookingValidation, cancelBookingValidation, idParamValidation } = require('../middleware/validators');
 
