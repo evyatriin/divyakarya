@@ -41,6 +41,15 @@ const UserDashboard = () => {
     useEffect(() => {
         if (location.state?.bookingSuccess) {
             setSuccessMessage({ message: location.state.message });
+
+            // Auto-trigger payment if flag is present
+            if (location.state.initiatePayment && location.state.bookingId && location.state.advanceAmount) {
+                // Small delay to ensure UI renders
+                setTimeout(() => {
+                    handleAdvancePayment(location.state.bookingId, location.state.advanceAmount);
+                }, 500);
+            }
+
             // Clear state so it doesn't persist on refresh
             window.history.replaceState({}, document.title);
             // Auto-hide after 10 seconds

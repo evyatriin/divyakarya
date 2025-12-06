@@ -51,17 +51,23 @@ const CeremonyDetails = () => {
         setSubmitting(true);
         try {
             const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-            await axios.post(`${apiUrl}/api/bookings`, {
+            const res = await axios.post(`${apiUrl}/api/bookings`, {
                 ceremonyType: details.title,
                 date: bookingDetails.date,
                 time: bookingDetails.time,
                 address: bookingDetails.address,
                 amount: 1000
             });
+
+            const booking = res.data;
+
             navigate('/dashboard', {
                 state: {
                     bookingSuccess: true,
-                    message: 'Booking request sent successfully! Please complete the advance payment to confirm your slot.'
+                    message: 'Booking request sent successfully! Please complete the advance payment to confirm your slot.',
+                    initiatePayment: true,
+                    bookingId: booking.id,
+                    advanceAmount: booking.advanceAmount
                 }
             });
         } catch (error) {
