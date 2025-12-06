@@ -41,7 +41,11 @@ export const AuthProvider = ({ children }) => {
             await axios.post(`${apiUrl}${endpoint}`, data);
             return { success: true };
         } catch (error) {
-            return { success: false, message: error.response?.data?.error || 'Registration failed' };
+            return {
+                success: false,
+                message: error.response?.data?.error || 'Registration failed',
+                details: error.response?.data?.details
+            };
         }
     };
 

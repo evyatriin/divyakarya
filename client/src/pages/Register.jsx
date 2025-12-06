@@ -8,16 +8,20 @@ const Register = () => {
         name: '', email: '', password: '', phone: '', specialization: '', experience: 0
     });
     const [error, setError] = useState('');
+    const [errorDetails, setErrorDetails] = useState([]);
     const { register } = useAuth();
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setError('');
+        setErrorDetails([]);
         const res = await register(formData, role);
         if (res.success) {
             navigate('/login');
         } else {
             setError(res.message);
+            if (res.details) setErrorDetails(res.details);
         }
     };
 
@@ -25,7 +29,14 @@ const Register = () => {
         <div className="container animate-fade-in" style={{ maxWidth: '500px', marginTop: '4rem' }}>
             <div className="card">
                 <h2 style={{ marginBottom: '1.5rem', textAlign: 'center', color: 'var(--primary)' }}>Create Account</h2>
-                {error && <div style={{ color: 'var(--error)', marginBottom: '1rem', textAlign: 'center' }}>{error}</div>}
+                {error && (
+                    <div style={{ color: 'var(--error)', marginBottom: '1rem', textAlign: 'center', backgroundColor: '#FEE2E2', padding: '0.5rem', borderRadius: '4px' }}>
+                        <div style={{ fontWeight: 'bold' }}>{error}</div>
+                        {errorDetails.map((err, idx) => (
+                            <div key={idx} style={{ fontSize: '0.9rem', marginTop: '0.2rem' }}>• {err.message}</div>
+                        ))}
+                    </div>
+                )}
 
                 <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', justifyContent: 'center' }}>
                     <button

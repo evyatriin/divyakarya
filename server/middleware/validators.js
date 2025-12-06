@@ -30,7 +30,7 @@ const loginValidation = [
 const userRegistrationValidation = [
     body('name').trim().isLength({ min: 2, max: 100 }).withMessage('Name must be 2-100 characters'),
     body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
-    body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters'),
+    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
     body('phone').trim().isLength({ min: 10, max: 15 }).withMessage('Phone must be 10-15 digits'),
     validate
 ];
@@ -38,7 +38,7 @@ const userRegistrationValidation = [
 const panditRegistrationValidation = [
     body('name').trim().isLength({ min: 2, max: 100 }).withMessage('Name must be 2-100 characters'),
     body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
-    body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters'),
+    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
     body('phone').trim().isLength({ min: 10, max: 15 }).withMessage('Phone must be 10-15 digits'),
     body('specialization').trim().isLength({ min: 2 }).withMessage('Specialization is required'),
     body('experience').isInt({ min: 0, max: 100 }).withMessage('Experience must be a valid number'),
