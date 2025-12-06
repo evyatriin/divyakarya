@@ -1,15 +1,20 @@
 const { body, param, query, validationResult } = require('express-validator');
 
 // Validation error handler middleware
+const logger = require('../utils/logger');
+
+// Validation error handler middleware
 const validate = (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+        const errorDetails = errors.array().map(err => ({
+            field: err.path,
+            message: err.msg
+        }));
+        logger.warn('Validation failed', { path: req.path, errors: errorDetails });
         return res.status(400).json({
             error: 'Validation failed',
-            details: errors.array().map(err => ({
-                field: err.path,
-                message: err.msg
-            }))
+            details: errorDetails
         });
     }
     next();
@@ -26,7 +31,7 @@ const userRegistrationValidation = [
     body('name').trim().isLength({ min: 2, max: 100 }).withMessage('Name must be 2-100 characters'),
     body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
     body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters'),
-    body('phone').matches(/^[0-9]{10}$/).withMessage('Valid 10-digit phone number required'),
+    body('phone').trim().isLength({ min: 10, max: 15 }).withMessage('Phone must be 10-15 digits'),
     validate
 ];
 
@@ -34,7 +39,7 @@ const panditRegistrationValidation = [
     body('name').trim().isLength({ min: 2, max: 100 }).withMessage('Name must be 2-100 characters'),
     body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
     body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters'),
-    body('phone').matches(/^[0-9]{10}$/).withMessage('Valid 10-digit phone number required'),
+    body('phone').trim().isLength({ min: 10, max: 15 }).withMessage('Phone must be 10-15 digits'),
     body('specialization').trim().isLength({ min: 2 }).withMessage('Specialization is required'),
     body('experience').isInt({ min: 0, max: 100 }).withMessage('Experience must be a valid number'),
     validate

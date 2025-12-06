@@ -20,7 +20,7 @@ const Pandit = sequelize.define('Pandit', {
         allowNull: false
     },
     specialization: {
-        type: DataTypes.STRING, // Comma separated values or JSON
+        type: DataTypes.STRING,
         allowNull: false
     },
     experience: {
@@ -34,6 +34,43 @@ const Pandit = sequelize.define('Pandit', {
     isVerified: {
         type: DataTypes.BOOLEAN,
         defaultValue: false
+    },
+    // New fields
+    photo: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    bio: {
+        type: DataTypes.TEXT,
+        allowNull: true
+    },
+    languages: {
+        type: DataTypes.JSON,
+        defaultValue: ['Hindi', 'English']
+    },
+    rating: {
+        type: DataTypes.FLOAT,
+        defaultValue: 0
+    },
+    totalReviews: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0
+    },
+    isEmailVerified: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+    },
+    emailVerificationToken: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    passwordResetToken: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    passwordResetExpires: {
+        type: DataTypes.DATE,
+        allowNull: true
     }
 });
 

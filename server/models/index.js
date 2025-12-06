@@ -4,6 +4,7 @@ const Booking = require('./Booking');
 const Ceremony = require('./Ceremony');
 const PageContent = require('./PageContent');
 const PanditAvailability = require('./PanditAvailability');
+const Review = require('./Review');
 
 // Associations
 User.hasMany(Booking);
@@ -20,11 +21,18 @@ PanditAvailability.belongsTo(Pandit);
 Booking.hasOne(PanditAvailability);
 PanditAvailability.belongsTo(Booking);
 
+// Review associations
+Pandit.hasMany(Review);
+Review.belongsTo(Pandit);
+User.hasMany(Review);
+Review.belongsTo(User);
+
 module.exports = {
     User,
     Pandit,
     Booking,
     Ceremony,
     PageContent,
-    PanditAvailability
+    PanditAvailability,
+    Review
 };
