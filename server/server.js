@@ -50,6 +50,7 @@ app.use('/api/payments', paymentLimiter, require('./routes/payments'));
 app.use('/api/ceremonies', require('./routes/ceremonies'));
 app.use('/api/pages', require('./routes/pages'));
 app.use('/api/users', require('./routes/users'));
+app.use('/api/reviews', require('./routes/reviews'));
 app.use('/api/availability', require('./routes/availability'));
 
 // Health check with DB status

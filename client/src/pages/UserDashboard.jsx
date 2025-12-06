@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
-import { Calendar, MapPin, Clock, CreditCard, Download, ArrowRight, XCircle, AlertCircle, Edit, User as UserIcon } from 'lucide-react';
+import { Calendar, MapPin, Clock, CreditCard, Download, ArrowRight, XCircle, AlertCircle, Edit, User as UserIcon, Star } from 'lucide-react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
@@ -24,6 +24,10 @@ const UserDashboard = () => {
     const [showCancelModal, setShowCancelModal] = useState(null);
     const [showProfileModal, setShowProfileModal] = useState(false);
     const [profileForm, setProfileForm] = useState({ name: '', phone: '' });
+
+    // Review Modal State
+    const [showReviewModal, setShowReviewModal] = useState(null);
+    const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' });
 
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -254,6 +258,25 @@ const UserDashboard = () => {
     const openProfileModal = () => {
         setProfileForm({ name: user.name, phone: user.phone });
         setShowProfileModal(true);
+    };
+
+    const handleSubmitReview = async (e) => {
+        e.preventDefault();
+        try {
+            await axios.post(`${apiUrl}/api/reviews`, {
+                panditId: showReviewModal.Pandit.id,
+                ceremonyType: showReviewModal.ceremonyType,
+                rating: parseInt(reviewForm.rating),
+                comment: reviewForm.comment
+            });
+            setSuccessMessage({ message: 'Review submitted successfully!' });
+            setShowReviewModal(null);
+            setTimeout(() => setSuccessMessage(null), 3000);
+            fetchBookings(); // Refresh to potentially update UI if we show "Reviewed" status
+        } catch (error) {
+            console.error('Error submitting review:', error);
+            setError(error.response?.data?.error || 'Failed to submit review');
+        }
     };
 
     const generateInvoice = (booking) => {
@@ -611,6 +634,20 @@ const UserDashboard = () => {
                                                     <Download size={16} /> Invoice
                                                 </button>
                                             )}
+
+                                            {/* Review Button */}
+                                            {b.status === 'completed' && (
+                                                <button
+                                                    onClick={() => {
+                                                        setReviewForm({ rating: 5, comment: '' });
+                                                        setShowReviewModal(b);
+                                                    }}
+                                                    className="btn btn-outline"
+                                                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', borderColor: '#F59E0B', color: '#F59E0B' }}
+                                                >
+                                                    <Star size={16} /> Review
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -767,6 +804,56 @@ const UserDashboard = () => {
                             <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
                                 <button type="button" onClick={() => setShowProfileModal(false)} className="btn btn-outline">Cancel</button>
                                 <button type="submit" className="btn btn-primary">Save Changes</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+            {/* Review Modal */}
+            {showReviewModal && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+                }}>
+                    <div className="card" style={{ maxWidth: '400px', width: '90%', margin: '1rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+                            <h3 style={{ margin: 0 }}>Review Pandit</h3>
+                            <button onClick={() => setShowReviewModal(null)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+                                <XCircle size={24} color="#6B7280" />
+                            </button>
+                        </div>
+                        <p style={{ marginBottom: '1rem' }}>
+                            How was your experience with <strong>{showReviewModal.Pandit?.name}</strong> for <strong>{showReviewModal.ceremonyType}</strong>?
+                        </p>
+                        <form onSubmit={handleSubmitReview}>
+                            <label className="label">Rating</label>
+                            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                                {[1, 2, 3, 4, 5].map(star => (
+                                    <button
+                                        key={star}
+                                        type="button"
+                                        onClick={() => setReviewForm({ ...reviewForm, rating: star })}
+                                        style={{
+                                            background: 'none', border: 'none', cursor: 'pointer',
+                                            color: star <= reviewForm.rating ? '#F59E0B' : '#E5E7EB'
+                                        }}
+                                    >
+                                        <Star size={32} fill={star <= reviewForm.rating ? '#F59E0B' : 'none'} />
+                                    </button>
+                                ))}
+                            </div>
+
+                            <label className="label">Comment</label>
+                            <textarea
+                                className="input" rows="3" required
+                                placeholder="Share your experience..."
+                                value={reviewForm.comment}
+                                onChange={e => setReviewForm({ ...reviewForm, comment: e.target.value })}
+                            />
+
+                            <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+                                <button type="button" onClick={() => setShowReviewModal(null)} className="btn btn-outline">Cancel</button>
+                                <button type="submit" className="btn btn-primary">Submit Review</button>
                             </div>
                         </form>
                     </div>

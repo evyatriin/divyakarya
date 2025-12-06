@@ -323,16 +323,24 @@ router.get('/stats', authenticateToken, async (req, res) => {
         const now = new Date();
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-        const [pending, accepted, completed, thisMonth] = await Promise.all([
+        const [pending, accepted, completed, thisMonth, pandit] = await Promise.all([
             Booking.count({ where: { PanditId: req.user.id, status: 'pending' } }),
             Booking.count({ where: { PanditId: req.user.id, status: 'accepted' } }),
             Booking.count({ where: { PanditId: req.user.id, status: 'completed' } }),
             Booking.count({
                 where: { PanditId: req.user.id, createdAt: { [Op.gte]: startOfMonth } }
-            })
+            }),
+            Pandit.findByPk(req.user.id, { attributes: ['rating', 'totalReviews'] })
         ]);
 
-        res.json({ pending, accepted, completed, thisMonth });
+        res.json({
+            pending,
+            accepted,
+            completed,
+            thisMonth,
+            rating: pandit?.rating || 0,
+            totalReviews: pandit?.totalReviews || 0
+        });
     } catch (error) {
         logger.error('Error fetching stats', error);
         res.status(500).json({ error: error.message });

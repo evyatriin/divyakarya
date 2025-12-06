@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
-import { Calendar, DollarSign, Clock, CheckCircle, XCircle, Plus, Trash2, Edit } from 'lucide-react';
+import { Calendar, DollarSign, Clock, CheckCircle, XCircle, Plus, Trash2, Edit, Star } from 'lucide-react';
 
 const PanditDashboard = () => {
     const { user, updateUser } = useAuth();
     const [bookings, setBookings] = useState([]);
-    const [stats, setStats] = useState({ pending: 0, accepted: 0, completed: 0, thisMonth: 0 });
+    const [stats, setStats] = useState({ pending: 0, accepted: 0, completed: 0, thisMonth: 0, rating: 0, totalReviews: 0 });
     const [revenue, setRevenue] = useState({ totalRevenue: 0, totalCeremonies: 0, perCeremony: [], aggregateByCeremony: {} });
     const [isOnline, setIsOnline] = useState(false);
     const [loading, setLoading] = useState(true);
