@@ -37,6 +37,17 @@ const UserDashboard = () => {
         checkForPendingBooking();
     }, []);
 
+    // Handle success message from navigation (e.g., after booking)
+    useEffect(() => {
+        if (location.state?.bookingSuccess) {
+            setSuccessMessage({ message: location.state.message });
+            // Clear state so it doesn't persist on refresh
+            window.history.replaceState({}, document.title);
+            // Auto-hide after 10 seconds
+            setTimeout(() => setSuccessMessage(null), 10000);
+        }
+    }, [location]);
+
     // Fetch price when ceremony type changes
     useEffect(() => {
         if (newBooking.ceremonyType) {

@@ -58,8 +58,12 @@ const CeremonyDetails = () => {
                 address: bookingDetails.address,
                 amount: 1000
             });
-            alert('Booking request sent successfully!');
-            navigate('/dashboard');
+            navigate('/dashboard', {
+                state: {
+                    bookingSuccess: true,
+                    message: 'Booking request sent successfully! Please complete the advance payment to confirm your slot.'
+                }
+            });
         } catch (error) {
             console.error('Error creating booking:', error);
             alert(error.response?.data?.error || 'Error booking ceremony. Please try again.');
