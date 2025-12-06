@@ -23,6 +23,8 @@ const Footer = () => {
                         <li style={{ marginBottom: '0.5rem' }}><Link to="/register-pandit" style={{ color: '#ccc', textDecoration: 'none' }}>Register as Pandit</Link></li>
                         <li style={{ marginBottom: '0.5rem' }}><Link to="/blog" style={{ color: '#ccc', textDecoration: 'none' }}>Blog</Link></li>
                         <li style={{ marginBottom: '0.5rem' }}><Link to="/feedback" style={{ color: '#ccc', textDecoration: 'none' }}>Feedback</Link></li>
+                        <li style={{ marginBottom: '0.5rem' }}><Link to="/terms" style={{ color: '#ccc', textDecoration: 'none' }}>Terms of Service</Link></li>
+                        <li style={{ marginBottom: '0.5rem' }}><Link to="/privacy" style={{ color: '#ccc', textDecoration: 'none' }}>Privacy Policy</Link></li>
                     </ul>
                 </div>
 

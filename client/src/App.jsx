@@ -13,7 +13,7 @@ import ModernBooking from './pages/ModernBooking';
 import ProtectedRoute from './components/ProtectedRoute';
 import { useAuth } from './context/AuthContext';
 
-import { About, Contact, RegisterPandit, Feedback, Blog } from './pages/StaticPages';
+import { About, Contact, RegisterPandit, Feedback, Blog, Terms, Privacy } from './pages/StaticPages';
 import Footer from './components/Footer';
 
 function App() {
@@ -58,6 +58,8 @@ function App() {
         <Route path="/register-pandit" element={<RegisterPandit />} />
         <Route path="/feedback" element={<Feedback />} />
         <Route path="/blog" element={<Blog />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/privacy" element={<Privacy />} />
 
       </Routes>
       <Footer />
