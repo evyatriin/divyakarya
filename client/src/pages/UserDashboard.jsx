@@ -2,12 +2,12 @@ import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
-import { Calendar, MapPin, Clock, CreditCard, Download, ArrowRight, XCircle, AlertCircle } from 'lucide-react';
+import { Calendar, MapPin, Clock, CreditCard, Download, ArrowRight, XCircle, AlertCircle, Edit, User as UserIcon } from 'lucide-react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
 const UserDashboard = () => {
-    const { user } = useAuth();
+    const { user, updateUser } = useAuth();
     const location = useLocation();
     const navigate = useNavigate();
     const [bookings, setBookings] = useState([]);
@@ -22,6 +22,8 @@ const UserDashboard = () => {
     const [successMessage, setSuccessMessage] = useState(null);
     const [cancellingId, setCancellingId] = useState(null);
     const [showCancelModal, setShowCancelModal] = useState(null);
+    const [showProfileModal, setShowProfileModal] = useState(false);
+    const [profileForm, setProfileForm] = useState({ name: '', phone: '' });
 
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -235,6 +237,25 @@ const UserDashboard = () => {
         }
     };
 
+    const handleUpdateProfile = async (e) => {
+        e.preventDefault();
+        try {
+            const res = await axios.put(`${apiUrl}/api/users/profile`, profileForm);
+            updateUser(res.data.user);
+            setShowProfileModal(false);
+            setSuccessMessage({ message: 'Profile updated successfully' });
+            setTimeout(() => setSuccessMessage(null), 3000);
+        } catch (error) {
+            console.error('Error updating profile:', error);
+            setError(error.response?.data?.errors?.[0]?.message || 'Failed to update profile');
+        }
+    };
+
+    const openProfileModal = () => {
+        setProfileForm({ name: user.name, phone: user.phone });
+        setShowProfileModal(true);
+    };
+
     const generateInvoice = (booking) => {
         const doc = new jsPDF();
 
@@ -336,7 +357,16 @@ const UserDashboard = () => {
 
     return (
         <div className="container animate-fade-in" style={{ marginTop: '2rem', paddingBottom: '3rem' }}>
-            <h1 style={{ marginBottom: '2rem', color: 'var(--primary)' }}>Namaste, {user.name}</h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
+                <h1 style={{ margin: 0, color: 'var(--primary)' }}>Namaste, {user.name}</h1>
+                <button
+                    onClick={openProfileModal}
+                    className="btn btn-outline"
+                    style={{ padding: '0.4rem 0.8rem', fontSize: '0.9rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}
+                >
+                    <Edit size={16} /> Edit Profile
+                </button>
+            </div>
 
             {/* Booking Form Section */}
             <div className="grid-responsive" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '2rem', marginBottom: '3rem' }}>
@@ -705,6 +735,40 @@ const UserDashboard = () => {
                                 {cancellingId === showCancelModal.id ? 'Cancelling...' : 'Confirm Cancel'}
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+            {/* Profile Edit Modal */}
+            {showProfileModal && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+                }}>
+                    <div className="card" style={{ maxWidth: '400px', width: '90%', margin: '1rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+                            <h3 style={{ margin: 0 }}>Edit Profile</h3>
+                            <button onClick={() => setShowProfileModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+                                <XCircle size={24} color="#6B7280" />
+                            </button>
+                        </div>
+                        <form onSubmit={handleUpdateProfile}>
+                            <label className="label">Full Name</label>
+                            <input
+                                type="text" className="input" required
+                                value={profileForm.name}
+                                onChange={e => setProfileForm({ ...profileForm, name: e.target.value })}
+                            />
+                            <label className="label">Phone Number</label>
+                            <input
+                                type="tel" className="input" required
+                                value={profileForm.phone}
+                                onChange={e => setProfileForm({ ...profileForm, phone: e.target.value })}
+                            />
+                            <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+                                <button type="button" onClick={() => setShowProfileModal(false)} className="btn btn-outline">Cancel</button>
+                                <button type="submit" className="btn btn-primary">Save Changes</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}
