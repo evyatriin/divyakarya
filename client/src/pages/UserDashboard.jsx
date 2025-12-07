@@ -142,65 +142,106 @@ const UserDashboard = () => {
 
     const handleAdvancePayment = async (bookingId, advanceAmount) => {
         try {
+            // Validate Razorpay is loaded
+            if (!window.Razorpay) {
+                throw new Error('Payment gateway not loaded. Please refresh the page.');
+            }
+
+            // Validate environment key exists
+            const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY;
+            if (!razorpayKey) {
+                throw new Error('Payment configuration error. Please contact support.');
+            }
+
+            // Create order on backend
             const orderRes = await axios.post(`${apiUrl}/api/payments/create-order`, {
                 bookingId,
                 paymentType: 'advance'
             });
 
+            if (!orderRes.data?.id) {
+                throw new Error('Failed to create payment order. Please try again.');
+            }
+
             const options = {
-                key: import.meta.env.VITE_RAZORPAY_KEY || 'rzp_test_123456',
+                key: razorpayKey,
                 amount: orderRes.data.amount,
-                currency: "INR",
+                currency: orderRes.data.currency || "INR",
                 name: "DivyaKarya",
-                description: "25% Advance Payment",
+                description: `Advance Payment - Booking #${bookingId}`,
                 order_id: orderRes.data.id,
                 handler: async function (response) {
                     try {
-                        await axios.post(`${apiUrl}/api/payments/verify-advance`, {
+                        // Verify payment on backend
+                        const verifyRes = await axios.post(`${apiUrl}/api/payments/verify-advance`, {
                             razorpay_order_id: response.razorpay_order_id,
                             razorpay_payment_id: response.razorpay_payment_id,
                             razorpay_signature: response.razorpay_signature,
                             bookingId
                         });
-                        await fetchBookings();
-                        setNewBooking({ ceremonyType: '', date: '', time: '', address: '' });
-                        setPriceInfo(null);
-                        setSuccessMessage({
-                            id: bookingId,
-                            message: `Booking #${bookingId} confirmed! Advance payment of ₹${advanceAmount} received.`
-                        });
-                        setTimeout(() => setSuccessMessage(null), 10000);
+
+                        if (verifyRes.data.status === 'success') {
+                            await fetchBookings();
+                            setNewBooking({ ceremonyType: '', date: '', time: '', address: '' });
+                            setPriceInfo(null);
+                            setSuccessMessage({
+                                id: bookingId,
+                                message: `Payment successful! Booking #${bookingId} confirmed with advance of ₹${advanceAmount}.`
+                            });
+                            setTimeout(() => setSuccessMessage(null), 10000);
+                        } else {
+                            setError('Payment verification failed. Please contact support.');
+                        }
                     } catch (err) {
                         console.error('Payment verification failed:', err);
-                        setError('Payment verification failed. Please contact support.');
+                        setError(err.response?.data?.error || 'Payment verification failed. Please contact support.');
                     }
                 },
                 modal: {
                     ondismiss: function () {
-                        setError('Payment was cancelled. Please complete payment to confirm booking.');
+                        setError('Payment cancelled. Your booking is saved but not confirmed. Please complete Payment to confirm your slot.');
                         fetchBookings();
-                    }
+                    },
+                    confirm_close: true,
+                    escape: false
                 },
                 prefill: {
-                    name: user.name,
-                    email: user.email || '',
-                    contact: user.phone || ''
+                    name: user?.name || '',
+                    email: user?.email || '',
+                    contact: user?.phone?.replace(/[^0-9]/g, '') || ''
                 },
-                theme: { color: "#D97706" }
+                notes: {
+                    bookingId: bookingId.toString(),
+                    customerName: user?.name || 'Guest'
+                },
+                theme: { color: "#D97706" },
+                retry: {
+                    enabled: true,
+                    max_count: 3
+                }
             };
 
             const rzp = new window.Razorpay(options);
+
+            // Handle payment failures
             rzp.on('payment.failed', function (response) {
-                setError(`Payment Failed: ${response.error.description}`);
+                console.error('Payment failed:', response.error);
+                const errorMsg = response.error?.description || 'Payment failed. Please try again.';
+                setError(`Payment Failed: ${errorMsg}`);
+
+                // Log failure to backend for tracking
                 axios.post(`${apiUrl}/api/payments/failure`, {
                     bookingId,
-                    errorDescription: response.error.description
-                });
+                    errorDescription: response.error?.description,
+                    errorCode: response.error?.code,
+                    razorpayOrderId: response.error?.metadata?.order_id
+                }).catch(e => console.error('Failed to log payment failure:', e));
             });
+
             rzp.open();
         } catch (error) {
             console.error('Payment initiation error:', error);
-            setError('Failed to initiate payment. Please try again.');
+            setError(error.response?.data?.error || error.message || 'Failed to initiate payment. Please try again.');
         } finally {
             setSubmitting(false);
         }

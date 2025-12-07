@@ -17,37 +17,65 @@ router.post('/create-order', authenticateToken, async (req, res) => {
     try {
         const { bookingId, paymentType } = req.body;
 
+        // Validate input
+        if (!bookingId) {
+            return res.status(400).json({ error: 'Booking ID is required' });
+        }
+
+        // Validate Razorpay keys are configured
+        if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+            logger.error('Razorpay keys not configured');
+            return res.status(500).json({ error: 'Payment service not configured. Please contact support.' });
+        }
+
         const booking = await Booking.findByPk(bookingId);
         if (!booking) {
             return res.status(404).json({ error: 'Booking not found' });
         }
 
+        // Verify user owns this booking (security check)
+        if (req.user.role === 'user' && booking.UserId !== req.user.id) {
+            return res.status(403).json({ error: 'Not authorized to pay for this booking' });
+        }
+
         // Determine amount based on payment type
         let amount;
         if (paymentType === 'advance') {
+            if (booking.advancePaid) {
+                return res.status(400).json({ error: 'Advance payment already completed' });
+            }
             amount = booking.advanceAmount;
         } else if (paymentType === 'remaining') {
             amount = booking.remainingAmount;
         } else {
-            // Default to advance amount for backward compatibility
             amount = req.body.amount || booking.advanceAmount;
+        }
+
+        if (!amount || amount <= 0) {
+            return res.status(400).json({ error: 'Invalid payment amount' });
         }
 
         const options = {
             amount: Math.round(amount * 100), // amount in paise
             currency: "INR",
-            receipt: `booking_${bookingId}_${paymentType || 'payment'}`,
+            receipt: `booking_${bookingId}_${paymentType || 'payment'}_${Date.now()}`,
             notes: {
                 bookingId: bookingId.toString(),
                 paymentType: paymentType || 'general',
-                ceremonyType: booking.ceremonyType
+                ceremonyType: booking.ceremonyType,
+                userId: req.user.id.toString()
             }
         };
 
+        logger.info('Creating Razorpay order', { bookingId, amount, paymentType });
         const order = await razorpay.orders.create(options);
+        logger.info('Razorpay order created', { orderId: order.id, bookingId });
 
         res.json({
-            ...order,
+            id: order.id,
+            amount: order.amount,
+            currency: order.currency,
+            receipt: order.receipt,
             bookingDetails: {
                 totalAmount: booking.totalAmount,
                 advanceAmount: booking.advanceAmount,
@@ -56,17 +84,17 @@ router.post('/create-order', authenticateToken, async (req, res) => {
             }
         });
     } catch (error) {
-        logger.error('Error creating order', error);
+        logger.error('Error creating order', { error: error.message, stack: error.stack });
 
         // Handle Razorpay specific errors
         if (error.statusCode) {
             return res.status(error.statusCode).json({
-                error: error.error?.description || error.message || 'Payment provider error',
+                error: error.error?.description || 'Payment provider error',
                 code: error.error?.code
             });
         }
 
-        res.status(500).json({ error: error.message || 'Internal Server Error' });
+        res.status(500).json({ error: 'Failed to create payment order. Please try again.' });
     }
 });
 
