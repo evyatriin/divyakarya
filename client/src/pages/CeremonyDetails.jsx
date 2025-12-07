@@ -33,6 +33,7 @@ const CeremonyDetails = () => {
     }, [id, language]);
 
     const [submitting, setSubmitting] = useState(false);
+    const [error, setError] = useState('');
 
     const handleBookingSubmit = async (e) => {
         e.preventDefault();
@@ -70,9 +71,10 @@ const CeremonyDetails = () => {
                     advanceAmount: booking.advanceAmount
                 }
             });
-        } catch (error) {
-            console.error('Error creating booking:', error);
-            alert(error.response?.data?.error || 'Error booking ceremony. Please try again.');
+        } catch (err) {
+            console.error('Error creating booking:', err);
+            setError(err.response?.data?.error || 'Error booking ceremony. Please try again.');
+            setTimeout(() => setError(''), 5000);
         } finally {
             setSubmitting(false);
         }
@@ -83,6 +85,17 @@ const CeremonyDetails = () => {
 
     return (
         <div className="container animate-fade-in" style={{ marginTop: '2rem', paddingBottom: '4rem' }}>
+            {/* Inline Error Banner */}
+            {error && (
+                <div style={{
+                    backgroundColor: '#FEE2E2', border: '1px solid #EF4444', color: '#991B1B',
+                    padding: '1rem', borderRadius: '0.5rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '1rem'
+                }}>
+                    <span>❌</span>
+                    <span>{error}</span>
+                    <button onClick={() => setError('')} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
+                </div>
+            )}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem' }}>
 
                 {/* Left Column: Details */}

@@ -9,6 +9,7 @@ const ModernBooking = () => {
     const [loading, setLoading] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
     const [bookingDetails, setBookingDetails] = useState(null);
+    const [error, setError] = useState('');
 
     const [formData, setFormData] = useState({
         city: '',
@@ -58,9 +59,10 @@ const ModernBooking = () => {
                 setBookingDetails(response.data.booking);
                 setShowSuccess(true);
             }
-        } catch (error) {
-            console.error('Booking submission error:', error);
-            alert('Failed to submit booking. Please try again.');
+        } catch (err) {
+            console.error('Booking submission error:', err);
+            setError(err.response?.data?.error || 'Failed to submit booking. Please try again.');
+            setTimeout(() => setError(''), 5000);
         } finally {
             setLoading(false);
         }
@@ -196,6 +198,20 @@ const ModernBooking = () => {
                 background: 'linear-gradient(135deg, rgba(139, 69, 19, 0.7) 0%, rgba(0, 0, 0, 0.8) 100%)',
                 zIndex: 1
             }}></div>
+
+            {/* Inline Error Banner */}
+            {error && (
+                <div style={{
+                    position: 'fixed', top: '1rem', left: '50%', transform: 'translateX(-50%)', zIndex: 100,
+                    backgroundColor: '#FEE2E2', border: '1px solid #EF4444', color: '#991B1B',
+                    padding: '1rem 2rem', borderRadius: '0.5rem', display: 'flex', alignItems: 'center', gap: '1rem',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+                }}>
+                    <span>❌</span>
+                    <span>{error}</span>
+                    <button onClick={() => setError('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#991B1B' }}>✕</button>
+                </div>
+            )}
 
             <div style={{
                 position: 'absolute',

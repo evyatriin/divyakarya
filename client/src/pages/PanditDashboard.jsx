@@ -30,6 +30,11 @@ const PanditDashboard = () => {
     const [profileError, setProfileError] = useState('');
     const [profileSuccess, setProfileSuccess] = useState('');
 
+    // Inline notification states
+    const [error, setError] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
+    const [confirmDeleteSlot, setConfirmDeleteSlot] = useState(null);
+
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
     useEffect(() => {
@@ -98,20 +103,27 @@ const PanditDashboard = () => {
                 endTime: '18:00'
             });
             fetchAvailability();
-        } catch (error) {
-            console.error('Error adding slot:', error);
-            alert(error.response?.data?.error || 'Failed to add slot');
+            setSuccessMessage('Slot added successfully!');
+            setTimeout(() => setSuccessMessage(''), 3000);
+        } catch (err) {
+            console.error('Error adding slot:', err);
+            setError(err.response?.data?.error || 'Failed to add slot');
+            setTimeout(() => setError(''), 5000);
         }
     };
 
     const deleteSlot = async (slotId) => {
-        if (!confirm('Delete this availability slot?')) return;
         try {
             await axios.delete(`${apiUrl}/api/availability/${slotId}`);
             fetchAvailability();
-        } catch (error) {
-            console.error('Error deleting slot:', error);
-            alert(error.response?.data?.error || 'Failed to delete slot');
+            setConfirmDeleteSlot(null);
+            setSuccessMessage('Slot deleted successfully!');
+            setTimeout(() => setSuccessMessage(''), 3000);
+        } catch (err) {
+            console.error('Error deleting slot:', err);
+            setConfirmDeleteSlot(null);
+            setError(err.response?.data?.error || 'Failed to delete slot');
+            setTimeout(() => setError(''), 5000);
         }
     };
 
@@ -193,6 +205,49 @@ const PanditDashboard = () => {
                     <div style={{ fontSize: '1.5rem' }}>⚠️</div>
                     <div>
                         <strong>Email not verified.</strong> Please check your inbox for the verification link.
+                    </div>
+                </div>
+            )}
+
+            {/* Inline Error Banner */}
+            {error && (
+                <div style={{
+                    backgroundColor: '#FEE2E2', border: '1px solid #EF4444', color: '#991B1B',
+                    padding: '1rem', borderRadius: '0.5rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '1rem'
+                }}>
+                    <XCircle size={20} />
+                    <span>{error}</span>
+                    <button onClick={() => setError('')} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
+                </div>
+            )}
+
+            {/* Inline Success Banner */}
+            {successMessage && (
+                <div style={{
+                    backgroundColor: '#D1FAE5', border: '1px solid #10B981', color: '#065F46',
+                    padding: '1rem', borderRadius: '0.5rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '1rem'
+                }}>
+                    <CheckCircle size={20} />
+                    <span>{successMessage}</span>
+                    <button onClick={() => setSuccessMessage('')} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
+                </div>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {confirmDeleteSlot && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+                }}>
+                    <div className="card" style={{ maxWidth: '400px', textAlign: 'center' }}>
+                        <h3>Delete Slot?</h3>
+                        <p style={{ color: 'var(--text-light)', marginBottom: '1.5rem' }}>
+                            Are you sure you want to delete this availability slot?
+                        </p>
+                        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                            <button onClick={() => setConfirmDeleteSlot(null)} className="btn btn-outline">Cancel</button>
+                            <button onClick={() => deleteSlot(confirmDeleteSlot)} className="btn btn-primary" style={{ backgroundColor: '#EF4444' }}>Delete</button>
+                        </div>
                     </div>
                 </div>
             )}
@@ -359,7 +414,7 @@ const PanditDashboard = () => {
                                             {slot.slotType.toUpperCase()}
                                         </span>
                                         {slot.slotType !== 'booked' && (
-                                            <button onClick={() => deleteSlot(slot.id)} style={{
+                                            <button onClick={() => setConfirmDeleteSlot(slot.id)} style={{
                                                 background: 'none',
                                                 border: 'none',
                                                 cursor: 'pointer',

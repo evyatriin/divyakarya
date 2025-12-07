@@ -31,6 +31,12 @@ const AdminDashboard = () => {
     });
     const [viewingPandit, setViewingPandit] = useState(null);
 
+    // Inline notification states
+    const [error, setError] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
+    const [confirmDeleteCeremony, setConfirmDeleteCeremony] = useState(null);
+    const [confirmDeletePandit, setConfirmDeletePandit] = useState(null);
+
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
     useEffect(() => { fetchData(); }, []);
@@ -71,9 +77,11 @@ const AdminDashboard = () => {
             await axios.put(`${apiUrl}/api/admin/assign`, { bookingId, panditId, slotId });
             setSelectedBooking(null);
             fetchData();
-            alert('Pandit assigned!');
-        } catch (error) {
-            alert(error.response?.data?.error || 'Error');
+            setSuccessMessage('Pandit assigned successfully!');
+            setTimeout(() => setSuccessMessage(''), 3000);
+        } catch (err) {
+            setError(err.response?.data?.error || 'Error assigning pandit');
+            setTimeout(() => setError(''), 5000);
         }
     };
 
@@ -108,19 +116,25 @@ const AdminDashboard = () => {
             }
             setShowCeremonyModal(false);
             fetchData();
-            alert('Ceremony saved!');
-        } catch (error) {
-            alert(error.response?.data?.error || 'Error');
+            setSuccessMessage('Ceremony saved successfully!');
+            setTimeout(() => setSuccessMessage(''), 3000);
+        } catch (err) {
+            setError(err.response?.data?.error || 'Error saving ceremony');
+            setTimeout(() => setError(''), 5000);
         }
     };
 
     const deleteCeremony = async (id) => {
-        if (!confirm('Delete this ceremony?')) return;
         try {
             await axios.delete(`${apiUrl}/api/ceremonies/${id}`);
             fetchData();
-        } catch (error) {
-            alert(error.response?.data?.error || 'Error');
+            setConfirmDeleteCeremony(null);
+            setSuccessMessage('Ceremony deleted!');
+            setTimeout(() => setSuccessMessage(''), 3000);
+        } catch (err) {
+            setConfirmDeleteCeremony(null);
+            setError(err.response?.data?.error || 'Error deleting ceremony');
+            setTimeout(() => setError(''), 5000);
         }
     };
 
@@ -145,16 +159,19 @@ const AdminDashboard = () => {
                 await axios.put(`${apiUrl}/api/pandits/${editingPandit.id}`, panditForm);
             } else {
                 if (!panditForm.password) {
-                    alert('Password is required for new pandit');
+                    setError('Password is required for new pandit');
+                    setTimeout(() => setError(''), 5000);
                     return;
                 }
                 await axios.post(`${apiUrl}/api/pandits`, panditForm);
             }
             setShowPanditModal(false);
             fetchData();
-            alert('Pandit saved!');
-        } catch (error) {
-            alert(error.response?.data?.error || 'Error');
+            setSuccessMessage('Pandit saved successfully!');
+            setTimeout(() => setSuccessMessage(''), 3000);
+        } catch (err) {
+            setError(err.response?.data?.error || 'Error saving pandit');
+            setTimeout(() => setError(''), 5000);
         }
     };
 
@@ -162,18 +179,25 @@ const AdminDashboard = () => {
         try {
             await axios.put(`${apiUrl}/api/pandits/${id}/verify`);
             fetchData();
-        } catch (error) {
-            alert(error.response?.data?.error || 'Error');
+            setSuccessMessage('Pandit verification updated!');
+            setTimeout(() => setSuccessMessage(''), 3000);
+        } catch (err) {
+            setError(err.response?.data?.error || 'Error updating verification');
+            setTimeout(() => setError(''), 5000);
         }
     };
 
     const deletePandit = async (id) => {
-        if (!confirm('Delete this pandit?')) return;
         try {
             await axios.delete(`${apiUrl}/api/pandits/${id}`);
             fetchData();
-        } catch (error) {
-            alert(error.response?.data?.error || 'Error');
+            setConfirmDeletePandit(null);
+            setSuccessMessage('Pandit deleted!');
+            setTimeout(() => setSuccessMessage(''), 3000);
+        } catch (err) {
+            setConfirmDeletePandit(null);
+            setError(err.response?.data?.error || 'Error deleting pandit');
+            setTimeout(() => setError(''), 5000);
         }
     };
 
@@ -181,8 +205,9 @@ const AdminDashboard = () => {
         try {
             const res = await axios.get(`${apiUrl}/api/pandits/${id}/details`);
             setViewingPandit(res.data);
-        } catch (error) {
-            alert(error.response?.data?.error || 'Error');
+        } catch (err) {
+            setError(err.response?.data?.error || 'Error fetching pandit details');
+            setTimeout(() => setError(''), 5000);
         }
     };
 
@@ -205,6 +230,68 @@ const AdminDashboard = () => {
     return (
         <div className="container animate-fade-in" style={{ marginTop: '2rem' }}>
             <h1 style={{ marginBottom: '1rem', color: 'var(--primary)' }}>Admin Dashboard</h1>
+
+            {/* Inline Error Banner */}
+            {error && (
+                <div style={{
+                    backgroundColor: '#FEE2E2', border: '1px solid #EF4444', color: '#991B1B',
+                    padding: '1rem', borderRadius: '0.5rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '1rem'
+                }}>
+                    <XCircle size={20} />
+                    <span>{error}</span>
+                    <button onClick={() => setError('')} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
+                </div>
+            )}
+
+            {/* Inline Success Banner */}
+            {successMessage && (
+                <div style={{
+                    backgroundColor: '#D1FAE5', border: '1px solid #10B981', color: '#065F46',
+                    padding: '1rem', borderRadius: '0.5rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '1rem'
+                }}>
+                    <CheckCircle size={20} />
+                    <span>{successMessage}</span>
+                    <button onClick={() => setSuccessMessage('')} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
+                </div>
+            )}
+
+            {/* Delete Ceremony Confirmation */}
+            {confirmDeleteCeremony && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+                }}>
+                    <div className="card" style={{ maxWidth: '400px', textAlign: 'center' }}>
+                        <h3>Delete Ceremony?</h3>
+                        <p style={{ color: 'var(--text-light)', marginBottom: '1.5rem' }}>
+                            Are you sure you want to delete this ceremony?
+                        </p>
+                        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                            <button onClick={() => setConfirmDeleteCeremony(null)} className="btn btn-outline">Cancel</button>
+                            <button onClick={() => deleteCeremony(confirmDeleteCeremony)} className="btn btn-primary" style={{ backgroundColor: '#EF4444' }}>Delete</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Pandit Confirmation */}
+            {confirmDeletePandit && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+                }}>
+                    <div className="card" style={{ maxWidth: '400px', textAlign: 'center' }}>
+                        <h3>Delete Pandit?</h3>
+                        <p style={{ color: 'var(--text-light)', marginBottom: '1.5rem' }}>
+                            Are you sure you want to delete this pandit?
+                        </p>
+                        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                            <button onClick={() => setConfirmDeletePandit(null)} className="btn btn-outline">Cancel</button>
+                            <button onClick={() => deletePandit(confirmDeletePandit)} className="btn btn-primary" style={{ backgroundColor: '#EF4444' }}>Delete</button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Tabs */}
             <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
@@ -345,7 +432,7 @@ const AdminDashboard = () => {
                                                 <button onClick={() => openPanditModal(p)} className="btn btn-outline" style={{ padding: '0.3rem 0.5rem' }} title="Edit">
                                                     <Edit size={16} />
                                                 </button>
-                                                <button onClick={() => deletePandit(p.id)} className="btn" style={{ padding: '0.3rem 0.5rem', background: '#FEE2E2', color: '#991B1B' }} title="Delete">
+                                                <button onClick={() => setConfirmDeletePandit(p.id)} className="btn" style={{ padding: '0.3rem 0.5rem', background: '#FEE2E2', color: '#991B1B' }} title="Delete">
                                                     <Trash2 size={16} />
                                                 </button>
                                             </div>
@@ -387,7 +474,7 @@ const AdminDashboard = () => {
                                         <td style={{ padding: '0.75rem', fontWeight: '600', color: '#10B981' }}>₹{c.basePrice}</td>
                                         <td style={{ padding: '0.75rem' }}>
                                             <button onClick={() => openCeremonyModal(c)} className="btn btn-outline" style={{ padding: '0.3rem 0.5rem', marginRight: '0.5rem' }}><Edit size={16} /></button>
-                                            <button onClick={() => deleteCeremony(c.id)} className="btn" style={{ padding: '0.3rem 0.5rem', background: '#FEE2E2', color: '#991B1B' }}><Trash2 size={16} /></button>
+                                            <button onClick={() => setConfirmDeleteCeremony(c.id)} className="btn" style={{ padding: '0.3rem 0.5rem', background: '#FEE2E2', color: '#991B1B' }}><Trash2 size={16} /></button>
                                         </td>
                                     </tr>
                                 ))}
