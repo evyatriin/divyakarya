@@ -669,6 +669,53 @@ const UserDashboard = () => {
                                         </div>
                                     )}
 
+                                    {/* Inline Cancellation Confirmation */}
+                                    {showCancelModal?.id === b.id && (
+                                        <div style={{
+                                            padding: '1rem',
+                                            background: '#FEF2F2',
+                                            border: '1px solid #FECACA',
+                                            borderRadius: '8px',
+                                            marginBottom: '1rem'
+                                        }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                                                <AlertCircle size={20} color="#EF4444" />
+                                                <strong style={{ color: '#DC2626' }}>Cancel this booking?</strong>
+                                            </div>
+                                            <p style={{ fontSize: '0.9rem', marginBottom: '0.75rem', color: '#7F1D1D' }}>
+                                                This will cancel <strong>{b.ceremonyType}</strong> on {b.date}.
+                                            </p>
+                                            {b.advancePaid && (
+                                                <div style={{
+                                                    padding: '0.75rem',
+                                                    background: getCancellationInfo(b).refundType === 'full' ? '#D1FAE5' : '#FEF3C7',
+                                                    borderRadius: '6px',
+                                                    marginBottom: '0.75rem',
+                                                    fontSize: '0.85rem'
+                                                }}>
+                                                    <strong>Refund:</strong> {getCancellationInfo(b).message}
+                                                </div>
+                                            )}
+                                            <div style={{ display: 'flex', gap: '0.75rem' }}>
+                                                <button
+                                                    onClick={() => setShowCancelModal(null)}
+                                                    className="btn btn-outline"
+                                                    style={{ flex: 1 }}
+                                                >
+                                                    Keep Booking
+                                                </button>
+                                                <button
+                                                    onClick={() => handleCancelBooking(b)}
+                                                    className="btn"
+                                                    disabled={cancellingId === b.id}
+                                                    style={{ flex: 1, background: '#EF4444', color: 'white' }}
+                                                >
+                                                    {cancellingId === b.id ? 'Cancelling...' : 'Confirm Cancel'}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <div>
                                             <span style={{ fontSize: '0.85rem' }}>
@@ -688,8 +735,8 @@ const UserDashboard = () => {
                                                 </button>
                                             )}
 
-                                            {/* Cancel Button */}
-                                            {b.status !== 'cancelled' && b.status !== 'completed' && b.status !== 'rejected' && (
+                                            {/* Cancel Button - only show if not already showing confirmation */}
+                                            {b.status !== 'cancelled' && b.status !== 'completed' && b.status !== 'rejected' && showCancelModal?.id !== b.id && (
                                                 <button
                                                     onClick={() => setShowCancelModal(b)}
                                                     className="btn btn-outline"
@@ -793,63 +840,6 @@ const UserDashboard = () => {
                 </div>
             </div>
 
-            {/* Cancel Confirmation Modal */}
-            {showCancelModal && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'rgba(0,0,0,0.5)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000
-                }}>
-                    <div className="card" style={{ maxWidth: '500px', margin: '1rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-                            <AlertCircle size={24} color="#EF4444" />
-                            <h3 style={{ color: '#EF4444' }}>Cancel Booking</h3>
-                        </div>
-
-                        <p style={{ marginBottom: '1rem' }}>
-                            Are you sure you want to cancel <strong>{showCancelModal.ceremonyType}</strong> on {showCancelModal.date}?
-                        </p>
-
-                        {showCancelModal.advancePaid && (
-                            <div style={{
-                                padding: '1rem',
-                                background: getCancellationInfo(showCancelModal).refundType === 'full' ? '#D1FAE5' : '#FEF3C7',
-                                borderRadius: '8px',
-                                marginBottom: '1rem'
-                            }}>
-                                <strong>Refund Policy:</strong>
-                                <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.9rem' }}>
-                                    {getCancellationInfo(showCancelModal).message}
-                                </p>
-                            </div>
-                        )}
-
-                        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-                            <button
-                                onClick={() => setShowCancelModal(null)}
-                                className="btn btn-outline"
-                            >
-                                Keep Booking
-                            </button>
-                            <button
-                                onClick={() => handleCancelBooking(showCancelModal)}
-                                className="btn"
-                                disabled={cancellingId === showCancelModal.id}
-                                style={{ background: '#EF4444', color: 'white' }}
-                            >
-                                {cancellingId === showCancelModal.id ? 'Cancelling...' : 'Confirm Cancel'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
             {/* Profile Edit Modal */}
             {showProfileModal && (
                 <div style={{
