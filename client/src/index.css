@@ -28,8 +28,8 @@ body {
   font-family: var(--font-sans);
   background-color: var(--background);
   color: var(--text);
-  line-height: 1.6;
-  font-size: 16px;
+  line-height: 1.55;
+  font-size: 15px;
 }
 
 h1,
@@ -43,26 +43,25 @@ h6 {
 }
 
 h1 {
-  font-size: 2.5rem;
+  font-size: 1.875rem;
 }
 
 h2 {
-  font-size: 2rem;
-}
-
-h3 {
   font-size: 1.5rem;
 }
 
-h4 {
+h3 {
   font-size: 1.25rem;
+}
+
+h4 {
+  font-size: 1.1rem;
 }
 
 p,
 li,
-span,
-div {
-  font-size: 1rem;
+span {
+  font-size: 0.95rem;
 }
 
 button {
