@@ -187,6 +187,7 @@ router.put('/:id/cancel', authenticateToken, async (req, res) => {
         }
 
         // Verify user owns this booking or is admin
+        const isAdmin = req.user.role === 'admin';
         if (req.user.role === 'user' && booking.UserId !== req.user.id) {
             return res.status(403).json({ error: 'Not authorized to cancel this booking' });
         }
@@ -210,7 +211,11 @@ router.put('/:id/cancel', authenticateToken, async (req, res) => {
         let refundStatus = 'none';
 
         if (booking.advancePaid && booking.advanceAmount > 0) {
-            if (hoursUntilCeremony >= 24) {
+            if (isAdmin) {
+                // Admin cancellation always gets full refund
+                refundAmount = booking.advanceAmount;
+                refundStatus = 'full';
+            } else if (hoursUntilCeremony >= 24) {
                 // Full refund if >= 24 hours before
                 refundAmount = booking.advanceAmount;
                 refundStatus = 'full';
@@ -224,9 +229,11 @@ router.put('/:id/cancel', authenticateToken, async (req, res) => {
         // Update booking
         booking.status = 'cancelled';
         booking.cancelledAt = new Date();
-        booking.cancellationReason = reason || 'Cancelled by user';
+        booking.cancellationReason = isAdmin
+            ? (reason || 'Cancelled by admin')
+            : (reason || 'Cancelled by user');
         booking.refundAmount = refundAmount;
-        booking.refundStatus = refundStatus;
+        booking.refundStatus = refundStatus !== 'none' ? 'pending' : 'none';
 
         // Free up the pandit's slot if assigned
         if (booking.PanditId) {
@@ -238,12 +245,52 @@ router.put('/:id/cancel', authenticateToken, async (req, res) => {
 
         await booking.save();
 
+        // Auto-initiate refund via Razorpay if payment was made
+        let refundResult = null;
+        if (refundAmount > 0 && booking.advancePaymentId) {
+            try {
+                const Razorpay = require('razorpay');
+                const razorpay = new Razorpay({
+                    key_id: process.env.RAZORPAY_KEY_ID,
+                    key_secret: process.env.RAZORPAY_KEY_SECRET
+                });
+
+                const refund = await razorpay.payments.refund(booking.advancePaymentId, {
+                    amount: Math.round(refundAmount * 100), // amount in paise
+                    speed: 'normal',
+                    notes: {
+                        bookingId: booking.id.toString(),
+                        refundType: refundStatus,
+                        cancelledBy: isAdmin ? 'admin' : 'user',
+                        reason: booking.cancellationReason
+                    }
+                });
+
+                // Update booking with refund details
+                booking.refundId = refund.id;
+                booking.refundStatus = 'processed';
+                booking.paymentStatus = 'refunded';
+                await booking.save();
+
+                refundResult = {
+                    id: refund.id,
+                    amount: refundAmount,
+                    status: 'processed'
+                };
+            } catch (refundError) {
+                console.error('Refund initiation failed:', refundError);
+                // Keep booking cancelled but mark refund as pending for manual processing
+                booking.refundStatus = 'pending';
+                await booking.save();
+            }
+        }
+
         res.json({
             success: true,
-            message: refundStatus === 'full'
-                ? `Booking cancelled. Full refund of ₹${refundAmount} will be processed.`
-                : refundStatus === 'partial'
-                    ? `Booking cancelled. Partial refund of ₹${refundAmount} (50% of advance) will be processed.`
+            message: refundResult
+                ? `Booking cancelled. Refund of ₹${refundAmount} has been initiated.`
+                : refundStatus !== 'none'
+                    ? `Booking cancelled. Refund of ₹${refundAmount} will be processed.`
                     : 'Booking cancelled. No refund applicable.',
             booking: {
                 id: booking.id,
@@ -251,7 +298,8 @@ router.put('/:id/cancel', authenticateToken, async (req, res) => {
                 refundAmount: booking.refundAmount,
                 refundStatus: booking.refundStatus,
                 hoursUntilCeremony: Math.round(hoursUntilCeremony)
-            }
+            },
+            refund: refundResult
         });
     } catch (error) {
         console.error('Error cancelling booking:', error);
