@@ -37,22 +37,31 @@ const AdminDashboard = () => {
     const [confirmDeleteCeremony, setConfirmDeleteCeremony] = useState(null);
     const [confirmDeletePandit, setConfirmDeletePandit] = useState(null);
 
+    // Doshas and ePujas for pricing management
+    const [doshas, setDoshas] = useState([]);
+    const [epujas, setEpujas] = useState([]);
+    const [editingPrice, setEditingPrice] = useState({ type: null, id: null, price: 0 });
+
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
     useEffect(() => { fetchData(); }, []);
 
     const fetchData = async () => {
         try {
-            const [bookingsRes, panditsRes, statsRes, ceremoniesRes] = await Promise.all([
+            const [bookingsRes, panditsRes, statsRes, ceremoniesRes, doshasRes, epujasRes] = await Promise.all([
                 axios.get(`${apiUrl}/api/bookings`),
                 axios.get(`${apiUrl}/api/pandits`),
                 axios.get(`${apiUrl}/api/admin/stats`),
-                axios.get(`${apiUrl}/api/ceremonies`)
+                axios.get(`${apiUrl}/api/ceremonies`),
+                axios.get(`${apiUrl}/api/doshas/admin/all`),
+                axios.get(`${apiUrl}/api/epujas/admin/all`)
             ]);
             setBookings(bookingsRes.data);
             setPandits(panditsRes.data);
             setStats(statsRes.data);
             setCeremonies(ceremoniesRes.data);
+            setDoshas(doshasRes.data || []);
+            setEpujas(epujasRes.data || []);
             setLoading(false);
         } catch (error) {
             console.error('Error:', error);
@@ -211,6 +220,25 @@ const AdminDashboard = () => {
         }
     };
 
+    // Update Dosha or ePuja price
+    const updatePrice = async (type, id, newPrice) => {
+        try {
+            const endpoint = type === 'dosha' ? 'doshas' : 'epujas';
+            await axios.put(`${apiUrl}/api/${endpoint}/${id}`, { price: parseFloat(newPrice) });
+            if (type === 'dosha') {
+                setDoshas(doshas.map(d => d.id === id ? { ...d, price: parseFloat(newPrice) } : d));
+            } else {
+                setEpujas(epujas.map(e => e.id === id ? { ...e, price: parseFloat(newPrice) } : e));
+            }
+            setEditingPrice({ type: null, id: null, price: 0 });
+            setSuccessMessage('Price updated successfully!');
+            setTimeout(() => setSuccessMessage(''), 3000);
+        } catch (err) {
+            setError(err.response?.data?.error || 'Error updating price');
+            setTimeout(() => setError(''), 5000);
+        }
+    };
+
     const filteredBookings = statusFilter === 'all' ? bookings : bookings.filter(b => b.status === statusFilter);
 
     const getStatusBadge = (status) => {
@@ -295,11 +323,11 @@ const AdminDashboard = () => {
 
             {/* Tabs */}
             <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-                {['bookings', 'pandits', 'ceremonies'].map(tab => (
+                {['bookings', 'pandits', 'ceremonies', 'pricing'].map(tab => (
                     <button key={tab} onClick={() => setActiveTab(tab)}
                         className={activeTab === tab ? 'btn btn-primary' : 'btn btn-outline'}
                         style={{ textTransform: 'capitalize' }}>
-                        {tab === 'ceremonies' ? 'Pujas' : tab === 'pandits' ? 'Pandits' : 'Bookings'}
+                        {tab === 'ceremonies' ? 'Pujas' : tab === 'pandits' ? 'Pandits' : tab === 'pricing' ? 'Pricing' : 'Bookings'}
                     </button>
                 ))}
             </div>
@@ -564,6 +592,119 @@ const AdminDashboard = () => {
                             <div>📱 {viewingPandit.phone}</div>
                             <div>📧 {viewingPandit.email}</div>
                             <div>📅 Joined: {new Date(viewingPandit.createdAt).toLocaleDateString()}</div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Pricing Tab */}
+            {activeTab === 'pricing' && (
+                <div>
+                    {/* Doshas Section */}
+                    <div className="card" style={{ marginBottom: '2rem' }}>
+                        <h3 style={{ marginBottom: '1rem', color: 'var(--secondary)' }}>🕉️ Dosha Remedies Pricing</h3>
+                        <div style={{ overflowX: 'auto' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                <thead>
+                                    <tr style={{ borderBottom: '2px solid #E5E7EB' }}>
+                                        <th style={{ textAlign: 'left', padding: '0.75rem' }}>Icon</th>
+                                        <th style={{ textAlign: 'left', padding: '0.75rem' }}>Name</th>
+                                        <th style={{ textAlign: 'left', padding: '0.75rem' }}>Duration</th>
+                                        <th style={{ textAlign: 'left', padding: '0.75rem' }}>Price (₹)</th>
+                                        <th style={{ textAlign: 'center', padding: '0.75rem' }}>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {doshas.map(dosha => (
+                                        <tr key={dosha.id} style={{ borderBottom: '1px solid #E5E7EB' }}>
+                                            <td style={{ padding: '0.75rem', fontSize: '1.5rem' }}>{dosha.icon}</td>
+                                            <td style={{ padding: '0.75rem', fontWeight: '500' }}>{dosha.name}</td>
+                                            <td style={{ padding: '0.75rem', color: 'var(--text-light)' }}>{dosha.duration}</td>
+                                            <td style={{ padding: '0.75rem' }}>
+                                                {editingPrice.type === 'dosha' && editingPrice.id === dosha.id ? (
+                                                    <input
+                                                        type="number"
+                                                        value={editingPrice.price}
+                                                        onChange={(e) => setEditingPrice({ ...editingPrice, price: e.target.value })}
+                                                        style={{ width: '100px', padding: '0.25rem', border: '1px solid var(--primary)', borderRadius: '4px' }}
+                                                        autoFocus
+                                                    />
+                                                ) : (
+                                                    <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>₹{dosha.price?.toLocaleString()}</span>
+                                                )}
+                                            </td>
+                                            <td style={{ padding: '0.75rem', textAlign: 'center' }}>
+                                                {editingPrice.type === 'dosha' && editingPrice.id === dosha.id ? (
+                                                    <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                                                        <button onClick={() => updatePrice('dosha', dosha.id, editingPrice.price)} className="btn btn-primary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}>Save</button>
+                                                        <button onClick={() => setEditingPrice({ type: null, id: null, price: 0 })} className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}>Cancel</button>
+                                                    </div>
+                                                ) : (
+                                                    <button onClick={() => setEditingPrice({ type: 'dosha', id: dosha.id, price: dosha.price })} className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}>
+                                                        <Edit size={14} /> Edit
+                                                    </button>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {/* e-Pujas Section */}
+                    <div className="card">
+                        <h3 style={{ marginBottom: '1rem', color: 'var(--secondary)' }}>📱 e-Puja Services Pricing</h3>
+                        <div style={{ overflowX: 'auto' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                <thead>
+                                    <tr style={{ borderBottom: '2px solid #E5E7EB' }}>
+                                        <th style={{ textAlign: 'left', padding: '0.75rem' }}>Icon</th>
+                                        <th style={{ textAlign: 'left', padding: '0.75rem' }}>Name</th>
+                                        <th style={{ textAlign: 'left', padding: '0.75rem' }}>Tag</th>
+                                        <th style={{ textAlign: 'left', padding: '0.75rem' }}>Type</th>
+                                        <th style={{ textAlign: 'left', padding: '0.75rem' }}>Price (₹)</th>
+                                        <th style={{ textAlign: 'center', padding: '0.75rem' }}>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {epujas.map(epuja => (
+                                        <tr key={epuja.id} style={{ borderBottom: '1px solid #E5E7EB' }}>
+                                            <td style={{ padding: '0.75rem', fontSize: '1.5rem' }}>{epuja.icon}</td>
+                                            <td style={{ padding: '0.75rem', fontWeight: '500' }}>{epuja.name}</td>
+                                            <td style={{ padding: '0.75rem' }}>
+                                                {epuja.tag && <span style={{ background: '#FEF3C7', color: '#92400E', padding: '0.15rem 0.4rem', borderRadius: '4px', fontSize: '0.75rem' }}>{epuja.tag}</span>}
+                                            </td>
+                                            <td style={{ padding: '0.75rem', color: 'var(--text-light)', fontSize: '0.85rem' }}>{epuja.priceType}</td>
+                                            <td style={{ padding: '0.75rem' }}>
+                                                {editingPrice.type === 'epuja' && editingPrice.id === epuja.id ? (
+                                                    <input
+                                                        type="number"
+                                                        value={editingPrice.price}
+                                                        onChange={(e) => setEditingPrice({ ...editingPrice, price: e.target.value })}
+                                                        style={{ width: '100px', padding: '0.25rem', border: '1px solid var(--primary)', borderRadius: '4px' }}
+                                                        autoFocus
+                                                    />
+                                                ) : (
+                                                    <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>₹{epuja.price?.toLocaleString()}</span>
+                                                )}
+                                            </td>
+                                            <td style={{ padding: '0.75rem', textAlign: 'center' }}>
+                                                {editingPrice.type === 'epuja' && editingPrice.id === epuja.id ? (
+                                                    <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                                                        <button onClick={() => updatePrice('epuja', epuja.id, editingPrice.price)} className="btn btn-primary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}>Save</button>
+                                                        <button onClick={() => setEditingPrice({ type: null, id: null, price: 0 })} className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}>Cancel</button>
+                                                    </div>
+                                                ) : (
+                                                    <button onClick={() => setEditingPrice({ type: 'epuja', id: epuja.id, price: epuja.price })} className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}>
+                                                        <Edit size={14} /> Edit
+                                                    </button>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
