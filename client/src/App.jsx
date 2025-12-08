@@ -11,6 +11,8 @@ import AdminDashboard from './pages/AdminDashboard';
 import LandingPage from './pages/LandingPage';
 import CeremonyDetails from './pages/CeremonyDetails';
 import ModernBooking from './pages/ModernBooking';
+import DoshasPage from './pages/DoshasPage';
+import EPujasPage from './pages/EPujasPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import { useAuth } from './context/AuthContext';
 
@@ -54,6 +56,8 @@ function App() {
 
         <Route path="/ceremony/:id" element={<CeremonyDetails />} />
         <Route path="/modern" element={<ModernBooking />} />
+        <Route path="/doshas" element={<DoshasPage />} />
+        <Route path="/epujas" element={<EPujasPage />} />
 
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
