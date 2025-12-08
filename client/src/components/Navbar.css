@@ -2,7 +2,7 @@
 .navbar {
     background: var(--secondary);
     color: white;
-    padding: 1rem 2rem;
+    padding: 0.75rem 2rem;
     position: sticky;
     top: 0;
     z-index: 1000;
@@ -18,7 +18,7 @@
 }
 
 .nav-brand {
-    font-size: 1.5rem;
+    font-size: 1.35rem;
     font-weight: bold;
     color: var(--primary);
     text-decoration: none;
@@ -30,17 +30,75 @@
 .nav-menu {
     display: flex;
     align-items: center;
-    gap: 1.5rem;
+    gap: 1.25rem;
 }
 
 .nav-link {
-    color: white;
+    color: rgba(255, 255, 255, 0.85);
     text-decoration: none;
+    font-size: 0.9rem;
     transition: color 0.2s;
 }
 
 .nav-link:hover {
     color: var(--primary);
+}
+
+/* Profile Icon */
+.profile-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.9);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.profile-icon:hover {
+    background: var(--primary);
+    color: white;
+}
+
+/* Logout Button */
+.logout-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.logout-btn:hover {
+    background: #EF4444;
+    border-color: #EF4444;
+    color: white;
+}
+
+/* Language Selector */
+.lang-select {
+    background: transparent;
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    padding: 0.3rem 0.5rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+    margin-left: auto;
+}
+
+.lang-select option {
+    background: var(--secondary);
+    color: white;
 }
 
 .mobile-toggle {
@@ -54,7 +112,7 @@
 /* Mobile Responsive Styles */
 @media (max-width: 768px) {
     .navbar {
-        padding: 1rem;
+        padding: 0.75rem 1rem;
     }
 
     .mobile-toggle {
@@ -85,6 +143,11 @@
     }
 
     .nav-menu .btn {
+        width: 100%;
+    }
+
+    .lang-select {
+        margin-left: 0;
         width: 100%;
     }
 }

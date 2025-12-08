@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
-import { LogOut, User, Globe, Menu, X } from 'lucide-react';
+import { LogOut, User, Menu, X } from 'lucide-react';
 import './Navbar.css';
 
 const Navbar = () => {
@@ -32,27 +32,6 @@ const Navbar = () => {
                 </button>
 
                 <div className={`nav-menu ${isMenuOpen ? 'active' : ''}`}>
-                    {/* Language Selector */}
-                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <Globe size={18} />
-                        <select
-                            value={language}
-                            onChange={(e) => changeLanguage(e.target.value)}
-                            style={{
-                                background: 'transparent',
-                                color: 'white',
-                                border: '1px solid #555',
-                                borderRadius: '4px',
-                                padding: '0.25rem',
-                                cursor: 'pointer'
-                            }}
-                        >
-                            <option value="en">English</option>
-                            <option value="te">Telugu</option>
-                            <option value="ta">Tamil</option>
-                        </select>
-                    </div>
-
                     <Link to="/about" className="nav-link" onClick={closeMenu}>About</Link>
                     <Link to="/contact" className="nav-link" onClick={closeMenu}>Contact</Link>
 
@@ -62,23 +41,39 @@ const Navbar = () => {
                                 to={user.role === 'admin' ? '/admin' : user.role === 'pandit' ? '/pandit' : '/dashboard'}
                                 className="btn btn-primary"
                                 onClick={closeMenu}
-                                style={{ padding: '0.5rem 1rem', fontSize: '0.9rem', textDecoration: 'none' }}
+                                style={{ padding: '0.4rem 1rem', fontSize: '0.85rem', textDecoration: 'none' }}
                             >
                                 Dashboard
                             </Link>
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <User size={18} /> {user.name}
-                            </span>
-                            <button onClick={handleLogout} className="btn btn-outline" style={{ padding: '0.5rem 1rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <LogOut size={16} /> Logout
+                            <div className="profile-icon" title={user.name || 'Profile'}>
+                                <User size={20} />
+                            </div>
+                            <button
+                                onClick={handleLogout}
+                                className="logout-btn"
+                                title="Logout"
+                            >
+                                <LogOut size={18} />
                             </button>
                         </>
                     ) : (
-                        <div style={{ display: 'flex', gap: '1rem', flexDirection: isMenuOpen ? 'column' : 'row', width: isMenuOpen ? '100%' : 'auto' }}>
-                            <Link to="/login" className="btn btn-outline" onClick={closeMenu}>Login</Link>
-                            <Link to="/register" className="btn btn-primary" onClick={closeMenu}>Register</Link>
+                        <div style={{ display: 'flex', gap: '0.75rem', flexDirection: isMenuOpen ? 'column' : 'row', width: isMenuOpen ? '100%' : 'auto' }}>
+                            <Link to="/login" className="nav-link" onClick={closeMenu}>Login</Link>
+                            <Link to="/register" className="btn btn-primary" onClick={closeMenu} style={{ padding: '0.4rem 1rem', fontSize: '0.85rem' }}>Register</Link>
                         </div>
                     )}
+
+                    {/* Language Selector - Far Right */}
+                    <select
+                        value={language}
+                        onChange={(e) => changeLanguage(e.target.value)}
+                        className="lang-select"
+                    >
+                        <option value="en">EN</option>
+                        <option value="te">తె</option>
+                        <option value="ta">த</option>
+                        <option value="hi">हि</option>
+                    </select>
                 </div>
             </div>
         </nav>
