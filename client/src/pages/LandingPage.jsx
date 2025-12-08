@@ -130,7 +130,7 @@ const LandingPage = () => {
             </section>
 
             {/* Doshas Section */}
-            <section style={{ background: '#FEF3C7', padding: '3rem 1rem' }}>
+            <section id="doshas" style={{ background: '#FEF3C7', padding: '3rem 1rem' }}>
                 <div className="container">
                     <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
                         <h2 style={{ color: 'var(--secondary)', marginBottom: '0.5rem' }}>Dosha Remedies</h2>
@@ -153,7 +153,7 @@ const LandingPage = () => {
             </section>
 
             {/* e-Pujas Section */}
-            <section className="container" style={{ padding: '3rem 1rem' }}>
+            <section id="epujas" className="container" style={{ padding: '3rem 1rem' }}>
                 <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'var(--primary)', color: 'white', padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.75rem', marginBottom: '0.75rem' }}>
                         <Video size={14} /> e-Pujas - Online Rituals
