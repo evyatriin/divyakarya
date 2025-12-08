@@ -1,65 +1,36 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Video, Calendar, CheckCircle, Globe, Clock } from 'lucide-react';
+import axios from 'axios';
+import { Video, CheckCircle, Globe, Clock } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 const EPujasPage = () => {
     const navigate = useNavigate();
+    const { language } = useLanguage();
+    const [ePujas, setEPujas] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    const ePujas = [
-        {
-            name: 'Live Temple Pujas',
-            icon: '🛕',
-            tag: 'Popular',
-            description: 'Participate in pujas from famous temples across India remotely',
-            details: 'Watch and participate in live pujas from renowned temples like Tirupati, Shirdi, Vaishno Devi, and more. Receive prasad at your doorstep.',
-            temples: ['Tirupati Balaji', 'Shirdi Sai Baba', 'Vaishno Devi', 'Siddhivinayak'],
-            price: '₹1,100 onwards'
-        },
-        {
-            name: 'Personalized e-Puja',
-            icon: '📱',
-            tag: 'New',
-            description: 'Custom puja performed by pandit on video call with your presence',
-            details: 'One-on-one puja session with a verified pandit via video call. Participate in real-time, ask questions, and receive personalized blessings.',
-            features: ['Live Video Call', 'Personal Sankalp', 'Real-time Mantras', 'Digital Recording'],
-            price: '₹2,100 onwards'
-        },
-        {
-            name: 'Daily Sankalp',
-            icon: '🌅',
-            tag: 'Subscription',
-            description: 'Daily prayers and archana performed on your behalf',
-            details: 'Subscribe to daily prayers where a pandit performs archana, lights diya, and does sankalp in your name every morning.',
-            features: ['Daily Morning Puja', 'Weekly Reports', 'Festival Special Pujas', 'Family Coverage'],
-            price: '₹999/month'
-        },
-        {
-            name: 'Festival Special Pujas',
-            icon: '🪔',
-            tag: 'Seasonal',
-            description: 'Special pujas during Navratri, Diwali, Shivratri, and other festivals',
-            details: 'Participate in elaborate pujas conducted during major Hindu festivals. Perfect for those away from home during festivals.',
-            festivals: ['Navratri', 'Diwali Lakshmi Puja', 'Maha Shivratri', 'Ganesh Chaturthi'],
-            price: '₹1,500 onwards'
-        },
-        {
-            name: 'Satyanarayan Katha e-Puja',
-            icon: '📿',
-            tag: 'Popular',
-            description: 'Complete Satyanarayan Puja via video conference',
-            details: 'Full Satyanarayan Katha performed virtually with your family participation. Includes all rituals and katha narration.',
-            includes: ['Complete Katha', 'All Mantras', 'Prasad Delivery', 'Family Participation'],
-            price: '₹2,500'
-        },
-        {
-            name: 'Ancestor Rituals Online',
-            icon: '🕯️',
-            tag: '',
-            description: 'Tarpan and Shradh ceremonies performed at sacred ghats',
-            details: 'Pitra Tarpan and Shradh rituals performed at sacred locations like Haridwar, Varanasi, or Gaya with live streaming.',
-            locations: ['Har Ki Pauri, Haridwar', 'Dashashwamedh Ghat, Varanasi', 'Vishnupad Temple, Gaya'],
-            price: '₹3,000 onwards'
-        }
-    ];
+    useEffect(() => {
+        const fetchEPujas = async () => {
+            try {
+                const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+                const res = await axios.get(`${apiUrl}/api/epujas?lang=${language}`);
+                setEPujas(res.data);
+            } catch (error) {
+                console.error('Error fetching e-pujas:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchEPujas();
+    }, [language]);
+
+    const formatPrice = (price, priceType) => {
+        const formatted = `₹${price.toLocaleString('en-IN')}`;
+        if (priceType === 'starting') return `${formatted} onwards`;
+        if (priceType === 'monthly') return `${formatted}/month`;
+        return formatted;
+    };
 
     const benefits = [
         { icon: <Globe size={24} />, title: 'Access Anywhere', desc: 'Join from any location worldwide' },
@@ -108,49 +79,57 @@ const EPujasPage = () => {
             {/* e-Pujas Grid */}
             <section className="container" style={{ padding: '3rem 1rem' }}>
                 <h2 style={{ textAlign: 'center', marginBottom: '2rem', color: 'var(--secondary)' }}>Our Virtual Puja Services</h2>
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-                    gap: '1.5rem'
-                }}>
-                    {ePujas.map((puja, idx) => (
-                        <div key={idx} className="card" style={{ position: 'relative', padding: '1.5rem' }}>
-                            {puja.tag && (
-                                <span style={{
-                                    position: 'absolute', top: '1rem', right: '1rem',
-                                    background: puja.tag === 'New' ? '#10B981' : puja.tag === 'Popular' ? 'var(--primary)' : puja.tag === 'Subscription' ? '#6366F1' : '#6B7280',
-                                    color: 'white', padding: '0.2rem 0.6rem', borderRadius: '0.25rem', fontSize: '0.7rem'
-                                }}>{puja.tag}</span>
-                            )}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-                                <span style={{ fontSize: '2rem' }}>{puja.icon}</span>
-                                <h3 style={{ margin: 0 }}>{puja.name}</h3>
-                            </div>
-                            <p style={{ color: 'var(--text-light)', marginBottom: '1rem', fontSize: '0.9rem' }}>
-                                {puja.details}
-                            </p>
-                            <div style={{ marginBottom: '1rem' }}>
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                                    {(puja.temples || puja.features || puja.festivals || puja.includes || puja.locations || []).slice(0, 3).map((item, i) => (
-                                        <span key={i} style={{
-                                            background: '#F3F4F6', padding: '0.2rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.75rem'
-                                        }}>{item}</span>
-                                    ))}
+                {loading ? (
+                    <p style={{ textAlign: 'center' }}>Loading e-pujas...</p>
+                ) : (
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+                        gap: '1.5rem'
+                    }}>
+                        {ePujas.map((puja) => (
+                            <div key={puja.id} className="card" style={{ position: 'relative', padding: '1.5rem' }}>
+                                {puja.tag && (
+                                    <span style={{
+                                        position: 'absolute', top: '1rem', right: '1rem',
+                                        background: puja.tag === 'New' ? '#10B981' : puja.tag === 'Popular' ? 'var(--primary)' : puja.tag === 'Subscription' ? '#6366F1' : '#6B7280',
+                                        color: 'white', padding: '0.2rem 0.6rem', borderRadius: '0.25rem', fontSize: '0.7rem'
+                                    }}>{puja.tag}</span>
+                                )}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+                                    <span style={{ fontSize: '2rem' }}>{puja.icon}</span>
+                                    <h3 style={{ margin: 0 }}>{puja.name}</h3>
                                 </div>
+                                <p style={{ color: 'var(--text-light)', marginBottom: '1rem', fontSize: '0.9rem' }}>
+                                    {puja.details || puja.description}
+                                </p>
+                                {puja.features && puja.features.length > 0 && (
+                                    <div style={{ marginBottom: '1rem' }}>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                                            {puja.features.slice(0, 3).map((item, i) => (
+                                                <span key={i} style={{
+                                                    background: '#F3F4F6', padding: '0.2rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.75rem'
+                                                }}>{item}</span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                                    <span style={{ fontWeight: 'bold', color: 'var(--primary)', fontSize: '1.1rem' }}>
+                                        {formatPrice(puja.price, puja.priceType)}
+                                    </span>
+                                </div>
+                                <button
+                                    className="btn btn-primary"
+                                    style={{ width: '100%' }}
+                                    onClick={() => navigate('/dashboard')}
+                                >
+                                    Book Now
+                                </button>
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                                <span style={{ fontWeight: 'bold', color: 'var(--primary)', fontSize: '1.1rem' }}>{puja.price}</span>
-                            </div>
-                            <button
-                                className="btn btn-primary"
-                                style={{ width: '100%' }}
-                                onClick={() => navigate('/dashboard')}
-                            >
-                                Book Now
-                            </button>
-                        </div>
-                    ))}
-                </div>
+                        ))}
+                    </div>
+                )}
             </section>
 
             {/* CTA Section */}

@@ -52,6 +52,8 @@ app.use('/api/pages', require('./routes/pages'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/reviews', require('./routes/reviews'));
 app.use('/api/availability', require('./routes/availability'));
+app.use('/api/doshas', require('./routes/doshas'));
+app.use('/api/epujas', require('./routes/epujas'));
 
 // Health check with DB status
 app.get('/', async (req, res) => {

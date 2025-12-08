@@ -5,6 +5,8 @@ const Ceremony = require('./Ceremony');
 const PageContent = require('./PageContent');
 const PanditAvailability = require('./PanditAvailability');
 const Review = require('./Review');
+const Dosha = require('./Dosha');
+const EPuja = require('./EPuja');
 
 // Associations
 User.hasMany(Booking);
@@ -34,5 +36,8 @@ module.exports = {
     Ceremony,
     PageContent,
     PanditAvailability,
-    Review
+    Review,
+    Dosha,
+    EPuja
 };
+
