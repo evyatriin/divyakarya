@@ -57,17 +57,17 @@ const whatsappService = {
         }
 
         const message = `Namaste ${user.name},
-Maproved! Your booking for *${booking.ceremonyType || 'Ceremony'}* has been confirmed.
+Your booking for *${booking.ceremonyType || 'Ceremony'}* has been confirmed.
     
-📅 Date: ${new Date(booking.bookingDate).toLocaleDateString()}
-🕒 Time: ${booking.bookingTime}
-📍 Location: ${booking.location}
+📅 Date: ${new Date(booking.date).toLocaleDateString()}
+🕒 Time: ${booking.time}
+📍 Location: ${booking.location || booking.address || 'To be confirmed'}
     
 Our Panditji will contact you shortly.
     
 Reference ID: #${booking.id}
     
-Thank you for choosing PanditOnCall!`;
+Thank you for choosing Divya Karya!`;
 
         return whatsappService.sendMessage(user.phoneNumber, message);
     }

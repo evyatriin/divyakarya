@@ -162,7 +162,7 @@ router.post('/', authenticateToken, async (req, res) => {
         // Construct a "Payment Pending" message manually or via helper if we add one later
         // For now, re-using sendBookingConfirmation or a generic message
         await whatsappService.sendMessage(
-            user.phoneNumber,
+            user.phone,
             `Namaste ${user.name},\nYour booking request for *${ceremonyType}* has been received (ID: #${booking.id}).\nPlease complete the advance payment of ₹${advanceAmount} to confirm via your dashboard.`
         );
     } catch (error) {
@@ -198,7 +198,7 @@ router.put('/:id/confirm-advance', authenticateToken, async (req, res) => {
             location: booking.address
         }, {
             name: user.name,
-            phoneNumber: user.phoneNumber
+            phoneNumber: user.phone
         });
 
         res.json({
