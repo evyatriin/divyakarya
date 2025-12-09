@@ -3,6 +3,7 @@ const router = express.Router();
 const { Booking, User, Pandit, Ceremony, PanditAvailability } = require('../models');
 const authenticateToken = require('../middleware/auth');
 const { sendBookingConfirmation } = require('../utils/emailService');
+const whatsappService = require('../services/whatsappService');
 const logger = require('../utils/logger');
 const { createBookingValidation, cancelBookingValidation, idParamValidation } = require('../middleware/validators');
 
@@ -72,6 +73,20 @@ router.post('/public', async (req, res) => {
             address
         });
 
+        // Send WhatsApp notification
+        await whatsappService.sendBookingConfirmation({
+            ...booking.toJSON(),
+            customerName,
+            ceremonyType,
+            date,
+            time,
+            location: address || 'To be confirmed',
+            id: booking.id
+        }, {
+            name: customerName,
+            phoneNumber: customerPhone
+        });
+
         res.status(201).json({
             success: true,
             message: 'Booking received successfully! We will contact you for advance payment.',
@@ -139,6 +154,17 @@ router.post('/', authenticateToken, async (req, res) => {
             message: 'Booking created. Please complete 25% advance payment.',
             paymentRequired: advanceAmount
         });
+
+        // Send WhatsApp notification for booking creation (Payment Pending)
+        const user = await User.findByPk(req.user.id);
+        const bookingData = booking.toJSON();
+
+        // Construct a "Payment Pending" message manually or via helper if we add one later
+        // For now, re-using sendBookingConfirmation or a generic message
+        await whatsappService.sendMessage(
+            user.phoneNumber,
+            `Namaste ${user.name},\nYour booking request for *${ceremonyType}* has been received (ID: #${booking.id}).\nPlease complete the advance payment of ₹${advanceAmount} to confirm via your dashboard.`
+        );
     } catch (error) {
         console.error('Booking creation error:', error);
         res.status(500).json({ error: error.message });
@@ -164,6 +190,16 @@ router.put('/:id/confirm-advance', authenticateToken, async (req, res) => {
         booking.advancePaymentId = paymentId;
         booking.paymentStatus = 'advance_paid';
         await booking.save();
+
+        // Send WhatsApp confirmation
+        const user = await User.findByPk(booking.UserId);
+        await whatsappService.sendBookingConfirmation({
+            ...booking.toJSON(),
+            location: booking.address
+        }, {
+            name: user.name,
+            phoneNumber: user.phoneNumber
+        });
 
         res.json({
             success: true,

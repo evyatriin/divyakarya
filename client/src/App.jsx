@@ -18,6 +18,7 @@ import { useAuth } from './context/AuthContext';
 
 import { About, Contact, RegisterPandit, Feedback, Blog, Terms, Privacy } from './pages/StaticPages';
 import Footer from './components/Footer';
+import WhatsAppButton from './components/WhatsAppButton';
 
 function App() {
   const { loading } = useAuth();
@@ -68,6 +69,7 @@ function App() {
         <Route path="/privacy" element={<Privacy />} />
 
       </Routes>
+      <WhatsAppButton />
       <Footer />
     </>
   );

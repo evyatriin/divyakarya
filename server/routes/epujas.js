@@ -24,7 +24,7 @@ router.get('/', async (req, res) => {
         res.json(result);
     } catch (error) {
         console.error('Error fetching e-pujas:', error);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ error: 'Internal Server Error', details: error.message });
     }
 });
 
