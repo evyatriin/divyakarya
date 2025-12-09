@@ -101,6 +101,42 @@
     color: white;
 }
 
+/* Auth Dropdown */
+.auth-dropdown-container {
+    position: relative;
+}
+
+.auth-dropdown-btn {
+    white-space: nowrap;
+}
+
+.auth-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 0.5rem 0;
+    min-width: 140px;
+    z-index: 1001;
+    margin-top: 0.5rem;
+}
+
+.auth-dropdown a {
+    display: block;
+    padding: 0.6rem 1rem;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+}
+
+.auth-dropdown a:hover {
+    background: #F3F4F6;
+    color: var(--primary);
+}
+
 .mobile-toggle {
     display: none;
     background: none;

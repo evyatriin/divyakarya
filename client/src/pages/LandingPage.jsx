@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
-import { Calendar, Star, ArrowRight, CheckCircle, Sparkles, Video, Shield, Clock } from 'lucide-react';
+import { Calendar, Star, ArrowRight, CheckCircle, Sparkles, Video, Shield, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 
 import { useLanguage } from '../context/LanguageContext';
 
@@ -12,6 +12,55 @@ const LandingPage = () => {
     const { language } = useLanguage();
     const [services, setServices] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [currentSlide, setCurrentSlide] = useState(0);
+
+    // Carousel slides showcasing offerings
+    const carouselSlides = [
+        {
+            title: 'Book Expert Pandits',
+            subtitle: 'For Pujas, Weddings & Rituals',
+            description: 'Verified and experienced pandits at your doorstep',
+            icon: '🕉️',
+            bg: 'linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)',
+            cta: 'Book Now',
+            link: '/dashboard'
+        },
+        {
+            title: 'Dosha Remedies',
+            subtitle: 'Manglik, Kaal Sarp, Pitra & More',
+            description: 'Expert astrological remedies for peace and prosperity',
+            icon: '🔮',
+            bg: 'linear-gradient(135deg, #DC2626 0%, #EF4444 100%)',
+            cta: 'Explore Doshas',
+            link: '/doshas'
+        },
+        {
+            title: 'e-Pujas Online',
+            subtitle: 'Live Temple & Personalized Pujas',
+            description: 'Participate in sacred rituals from anywhere via video',
+            icon: '📱',
+            bg: 'linear-gradient(135deg, #D97706 0%, #F59E0B 100%)',
+            cta: 'View e-Pujas',
+            link: '/epujas'
+        },
+        {
+            title: 'Festival Special',
+            subtitle: 'Navratri, Diwali, Shivratri',
+            description: 'Book special pujas during auspicious occasions',
+            icon: '🪔',
+            bg: 'linear-gradient(135deg, #059669 0%, #10B981 100%)',
+            cta: 'Explore',
+            link: '/epujas'
+        }
+    ];
+
+    // Auto-rotate carousel
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setCurrentSlide((prev) => (prev + 1) % carouselSlides.length);
+        }, 5000);
+        return () => clearInterval(timer);
+    }, [carouselSlides.length]);
 
     useEffect(() => {
         const fetchServices = async () => {
@@ -33,6 +82,9 @@ const LandingPage = () => {
         navigate(`/ceremony/${service.slug}`);
     };
 
+    const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % carouselSlides.length);
+    const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + carouselSlides.length) % carouselSlides.length);
+
     const doshas = [
         { name: 'Manglik Dosha', icon: '🔴', description: 'Remedies for Mars affliction in horoscope' },
         { name: 'Kaal Sarp Dosha', icon: '🐍', description: 'Puja to pacify Rahu-Ketu axis effects' },
@@ -49,45 +101,69 @@ const LandingPage = () => {
 
     return (
         <div className="animate-fade-in">
-            {/* Hero Section */}
-            <section style={{
-                background: 'linear-gradient(to bottom, var(--background), #fff)',
-                padding: '3rem 1rem',
-                textAlign: 'center'
-            }}>
-                <div className="container">
-                    <h1 style={{ fontSize: '2.5rem', color: 'var(--primary)', marginBottom: '1rem' }}>
-                        Find the Perfect Pandit for Your Ceremony
-                    </h1>
-                    <p style={{ fontSize: '1.1rem', color: 'var(--text-light)', maxWidth: '600px', margin: '0 auto 2rem' }}>
-                        Book experienced and verified Pandits for Pujas, Weddings, and Rituals in just a few clicks.
-                    </p>
-                    {user ? (
-                        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+            {/* Carousel Banner */}
+            <section style={{ position: 'relative', height: '340px', overflow: 'hidden' }}>
+                {carouselSlides.map((slide, idx) => (
+                    <div
+                        key={idx}
+                        style={{
+                            position: 'absolute',
+                            top: 0, left: 0, right: 0, bottom: 0,
+                            background: slide.bg,
+                            color: 'white',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            textAlign: 'center',
+                            padding: '2rem',
+                            opacity: idx === currentSlide ? 1 : 0,
+                            transform: idx === currentSlide ? 'scale(1)' : 'scale(0.95)',
+                            transition: 'opacity 0.6s ease, transform 0.6s ease',
+                            pointerEvents: idx === currentSlide ? 'auto' : 'none'
+                        }}
+                    >
+                        <div>
+                            <div style={{ fontSize: '3.5rem', marginBottom: '0.75rem' }}>{slide.icon}</div>
+                            <h1 style={{ fontSize: '2.25rem', marginBottom: '0.5rem', fontWeight: '700' }}>{slide.title}</h1>
+                            <p style={{ fontSize: '1.25rem', opacity: 0.95, marginBottom: '0.25rem' }}>{slide.subtitle}</p>
+                            <p style={{ opacity: 0.85, marginBottom: '1.5rem', fontSize: '1rem' }}>{slide.description}</p>
                             <button
-                                onClick={() => navigate(user.role === 'admin' ? '/admin' : user.role === 'pandit' ? '/pandit' : '/dashboard')}
-                                className="btn btn-primary"
-                                style={{ fontSize: '1rem', padding: '0.75rem 1.5rem' }}
+                                onClick={() => navigate(user ? slide.link : '/login')}
+                                className="btn"
+                                style={{ background: 'white', color: '#333', padding: '0.6rem 1.5rem', fontWeight: '600' }}
                             >
-                                Go to Dashboard
-                            </button>
-                            <button
-                                onClick={() => document.getElementById('services').scrollIntoView({ behavior: 'smooth' })}
-                                className="btn btn-outline"
-                                style={{ fontSize: '1rem', padding: '0.75rem 1.5rem' }}
-                            >
-                                Explore Services
+                                {slide.cta} <ArrowRight size={16} style={{ marginLeft: '0.5rem', verticalAlign: 'middle' }} />
                             </button>
                         </div>
-                    ) : (
+                    </div>
+                ))}
+
+                {/* Carousel Controls */}
+                <button onClick={prevSlide} style={{
+                    position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)',
+                    background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '50%',
+                    width: '40px', height: '40px', cursor: 'pointer', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}><ChevronLeft size={24} /></button>
+                <button onClick={nextSlide} style={{
+                    position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)',
+                    background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '50%',
+                    width: '40px', height: '40px', cursor: 'pointer', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}><ChevronRight size={24} /></button>
+
+                {/* Dots */}
+                <div style={{ position: 'absolute', bottom: '1rem', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '0.5rem' }}>
+                    {carouselSlides.map((_, idx) => (
                         <button
-                            onClick={() => document.getElementById('services').scrollIntoView({ behavior: 'smooth' })}
-                            className="btn btn-primary"
-                            style={{ fontSize: '1rem', padding: '0.75rem 1.5rem' }}
-                        >
-                            Explore Services
-                        </button>
-                    )}
+                            key={idx}
+                            onClick={() => setCurrentSlide(idx)}
+                            style={{
+                                width: idx === currentSlide ? '24px' : '8px',
+                                height: '8px', borderRadius: '4px', border: 'none', cursor: 'pointer',
+                                background: idx === currentSlide ? 'white' : 'rgba(255,255,255,0.5)',
+                                transition: 'all 0.3s'
+                            }}
+                        />
+                    ))}
                 </div>
             </section>
 
@@ -119,9 +195,20 @@ const LandingPage = () => {
                                     e.currentTarget.style.boxShadow = '';
                                 }}
                             >
-                                <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>{service.icon}</div>
+                                {service.image ? (
+                                    <img
+                                        src={service.image}
+                                        alt={service.title}
+                                        style={{
+                                            width: '100%', height: '140px', objectFit: 'cover',
+                                            borderRadius: '8px', marginBottom: '0.75rem'
+                                        }}
+                                    />
+                                ) : (
+                                    <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>{service.icon}</div>
+                                )}
                                 <h3 style={{ marginBottom: '0.5rem', fontSize: '1.1rem' }}>{service.title}</h3>
-                                <p style={{ color: 'var(--text-light)', marginBottom: '1rem', fontSize: '0.9rem' }}>{service.description.substring(0, 80)}...</p>
+                                <p style={{ color: 'var(--text-light)', marginBottom: '1rem', fontSize: '0.9rem' }}>{service.description?.substring(0, 80)}...</p>
                                 <button className="btn btn-outline" style={{ width: '100%', padding: '0.5rem' }}>Book Now</button>
                             </div>
                         ))}

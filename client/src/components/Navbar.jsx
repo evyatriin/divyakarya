@@ -10,6 +10,7 @@ const Navbar = () => {
     const { language, changeLanguage } = useLanguage();
     const navigate = useNavigate();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [showAuthDropdown, setShowAuthDropdown] = useState(false);
 
     const handleLogout = () => {
         logout();
@@ -59,17 +60,29 @@ const Navbar = () => {
                             </button>
                         </>
                     ) : (
-                        <div style={{ display: 'flex', gap: '0.75rem', flexDirection: isMenuOpen ? 'column' : 'row', width: isMenuOpen ? '100%' : 'auto' }}>
-                            <Link to="/login" className="nav-link" onClick={closeMenu}>Login</Link>
-                            <Link to="/register" className="btn btn-primary" onClick={closeMenu} style={{ padding: '0.4rem 1rem', fontSize: '0.85rem' }}>Register</Link>
+                        <div className="auth-dropdown-container">
+                            <button
+                                className="btn btn-primary auth-dropdown-btn"
+                                onClick={() => setShowAuthDropdown(!showAuthDropdown)}
+                                style={{ padding: '0.4rem 1rem', fontSize: '0.85rem' }}
+                            >
+                                Login / Register
+                            </button>
+                            {showAuthDropdown && (
+                                <div className="auth-dropdown">
+                                    <Link to="/login" onClick={() => { closeMenu(); setShowAuthDropdown(false); }}>Login</Link>
+                                    <Link to="/register" onClick={() => { closeMenu(); setShowAuthDropdown(false); }}>Register</Link>
+                                </div>
+                            )}
                         </div>
                     )}
 
-                    {/* Language Selector - Far Right */}
+                    {/* Language Selector - Far Right with extra margin */}
                     <select
                         value={language}
                         onChange={(e) => changeLanguage(e.target.value)}
                         className="lang-select"
+                        style={{ marginLeft: '1rem' }}
                     >
                         <option value="en">EN</option>
                         <option value="te">తె</option>

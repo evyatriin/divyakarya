@@ -15,6 +15,11 @@ const EPuja = sequelize.define('EPuja', {
         type: DataTypes.STRING,
         defaultValue: '🛕'
     },
+    image: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        comment: 'URL to image uploaded by admin'
+    },
     tag: {
         type: DataTypes.STRING, // Popular, New, Subscription, Seasonal
         allowNull: true

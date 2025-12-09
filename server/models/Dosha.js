@@ -15,6 +15,11 @@ const Dosha = sequelize.define('Dosha', {
         type: DataTypes.STRING,
         defaultValue: '🔴'
     },
+    image: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        comment: 'URL to image uploaded by admin'
+    },
     description: {
         type: DataTypes.TEXT,
         allowNull: false
