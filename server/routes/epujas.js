@@ -28,6 +28,21 @@ router.get('/', async (req, res) => {
     }
 });
 
+// Admin: Get all e-pujas (including inactive) - MUST be before /:slug
+router.get('/admin/all', authenticateToken, async (req, res) => {
+    try {
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ error: 'Admin only' });
+        }
+        const epujas = await EPuja.findAll({
+            order: [['displayOrder', 'ASC'], ['createdAt', 'ASC']]
+        });
+        res.json(epujas);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Get single e-puja by slug (public)
 router.get('/:slug', async (req, res) => {
     try {
@@ -38,21 +53,6 @@ router.get('/:slug', async (req, res) => {
             return res.status(404).json({ error: 'e-Puja not found' });
         }
         res.json(epuja);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// Admin: Get all e-pujas (including inactive)
-router.get('/admin/all', authenticateToken, async (req, res) => {
-    try {
-        if (req.user.role !== 'admin') {
-            return res.status(403).json({ error: 'Admin only' });
-        }
-        const epujas = await EPuja.findAll({
-            order: [['displayOrder', 'ASC'], ['createdAt', 'ASC']]
-        });
-        res.json(epujas);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
