@@ -93,6 +93,23 @@ async function initializeDatabase() {
         logger.info('Starting database sync...');
         await sequelize.sync({ alter: true });
         logger.info('Database synced successfully');
+
+        // Auto-seed doshas and epujas if tables are empty
+        try {
+            const { Dosha, EPuja } = require('./models');
+            const doshaCount = await Dosha.count();
+            const epujaCount = await EPuja.count();
+
+            if (doshaCount === 0 || epujaCount === 0) {
+                logger.info('Seeding doshas and epujas data...');
+                const seedDoshasAndEPujas = require('./seed-doshas-epujas');
+                await seedDoshasAndEPujas();
+                logger.info('Doshas and ePujas seeded successfully');
+            }
+        } catch (seedError) {
+            logger.warn('Could not seed doshas/epujas:', seedError.message);
+        }
+
         dbInitialized = true;
     } catch (err) {
         logger.error('Database sync failed', err);

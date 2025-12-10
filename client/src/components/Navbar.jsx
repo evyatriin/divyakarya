@@ -33,6 +33,7 @@ const Navbar = () => {
                 </button>
 
                 <div className={`nav-menu ${isMenuOpen ? 'active' : ''}`}>
+                    <Link to="/pandits" className="nav-link" onClick={closeMenu}>Pandits</Link>
                     <Link to="/doshas" className="nav-link" onClick={closeMenu}>Doshas</Link>
                     <Link to="/epujas" className="nav-link" onClick={closeMenu}>e-Pujas</Link>
                     <Link to="/about" className="nav-link" onClick={closeMenu}>About</Link>

@@ -7,10 +7,22 @@ const authenticateToken = require('../middleware/auth');
 router.get('/', async (req, res) => {
     try {
         const { lang } = req.query;
-        const doshas = await Dosha.findAll({
-            where: { isActive: true },
-            order: [['displayOrder', 'ASC'], ['createdAt', 'ASC']]
-        });
+        let doshas;
+
+        try {
+            // Try with displayOrder first
+            doshas = await Dosha.findAll({
+                where: { isActive: true },
+                order: [['displayOrder', 'ASC'], ['createdAt', 'ASC']]
+            });
+        } catch (orderError) {
+            console.warn('displayOrder column might not exist, falling back:', orderError.message);
+            // Fallback to just createdAt if displayOrder doesn't exist
+            doshas = await Dosha.findAll({
+                where: { isActive: true },
+                order: [['createdAt', 'ASC']]
+            });
+        }
 
         // Apply translations if language specified
         const result = doshas.map(d => {
@@ -24,7 +36,7 @@ router.get('/', async (req, res) => {
         res.json(result);
     } catch (error) {
         console.error('Error fetching doshas:', error);
-        res.status(500).json({ error: 'Internal Server Error', details: error.message });
+        res.status(500).json({ error: 'Failed to fetch doshas', details: error.message });
     }
 });
 
