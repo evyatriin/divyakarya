@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Star, Clock, CheckCircle, Calendar, ArrowRight } from 'lucide-react';
+import { Clock, CheckCircle, ArrowRight, Shield, Star } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
 const PanditsPage = () => {
@@ -25,13 +25,13 @@ const PanditsPage = () => {
         fetchCeremonies();
     }, [language]);
 
-    const handleBookCeremony = (ceremony) => {
+    const handleCeremonyClick = (ceremony) => {
         navigate(`/ceremony/${ceremony.slug}`);
     };
 
     return (
         <div className="animate-fade-in" style={{ background: 'var(--background)', minHeight: '100vh' }}>
-            {/* Hero Section - Compact */}
+            {/* Hero Section */}
             <section style={{
                 background: 'linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)',
                 color: 'white',
@@ -39,19 +39,16 @@ const PanditsPage = () => {
                 textAlign: 'center'
             }}>
                 <div className="container">
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.2)', padding: '0.2rem 0.6rem', borderRadius: '1rem', fontSize: '0.8rem', marginBottom: '0.75rem' }}>
-                        <CheckCircle size={14} /> Verified Pandits
-                    </div>
                     <h1 style={{ fontSize: '1.75rem', marginBottom: '0.5rem' }}>
-                        Book a Pandit for Puja
+                        Book a Pandit for Your Ceremony
                     </h1>
                     <p style={{ opacity: 0.9, maxWidth: '500px', margin: '0 auto', fontSize: '0.9rem' }}>
-                        Select a ceremony below. Our verified pandits will be assigned based on your location and preferred date.
+                        Select a ceremony below and we'll assign a verified pandit based on your date and location.
                     </p>
                 </div>
             </section>
 
-            {/* Trust Badges - Compact */}
+            {/* Trust Badges */}
             <section style={{ background: 'white', padding: '1rem', borderBottom: '1px solid #eee' }}>
                 <div className="container" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '1.5rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem' }}>
@@ -60,10 +57,10 @@ const PanditsPage = () => {
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem' }}>
                         <Star size={16} style={{ color: '#F59E0B' }} />
-                        <span>4.5+ Rating</span>
+                        <span>4.5+ Rated</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem' }}>
-                        <Clock size={16} style={{ color: 'var(--primary)' }} />
+                        <Shield size={16} style={{ color: 'var(--primary)' }} />
                         <span>On-Time Guarantee</span>
                     </div>
                 </div>
@@ -75,7 +72,7 @@ const PanditsPage = () => {
                     Select a Ceremony
                 </h2>
                 <p style={{ textAlign: 'center', marginBottom: '1.5rem', color: 'var(--text-light)', fontSize: '0.9rem' }}>
-                    Choose the puja or ceremony you need, and we'll assign the best pandit for you
+                    Choose the puja you need — our admin will assign the best available pandit
                 </p>
 
                 {loading ? (
@@ -95,7 +92,7 @@ const PanditsPage = () => {
                                     cursor: 'pointer',
                                     transition: 'transform 0.2s, box-shadow 0.2s'
                                 }}
-                                onClick={() => handleBookCeremony(ceremony)}
+                                onClick={() => handleCeremonyClick(ceremony)}
                                 onMouseEnter={e => {
                                     e.currentTarget.style.transform = 'translateY(-4px)';
                                     e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.1)';
@@ -113,21 +110,13 @@ const PanditsPage = () => {
                                             style={{ width: '48px', height: '48px', borderRadius: '0.5rem', objectFit: 'cover' }}
                                         />
                                     ) : (
-                                        <div style={{
-                                            fontSize: '2rem',
-                                            width: '48px',
-                                            height: '48px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center'
-                                        }}>{ceremony.icon}</div>
+                                        <div style={{ fontSize: '2rem' }}>{ceremony.icon}</div>
                                     )}
                                     <div>
                                         <h3 style={{ margin: 0, fontSize: '1rem' }}>{ceremony.title}</h3>
                                         {ceremony.duration && (
-                                            <span style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}>
-                                                <Clock size={12} style={{ marginRight: '0.25rem' }} />
-                                                {ceremony.duration}
+                                            <span style={{ fontSize: '0.75rem', color: 'var(--text-light)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                                <Clock size={12} /> {ceremony.duration}
                                             </span>
                                         )}
                                     </div>
@@ -140,7 +129,7 @@ const PanditsPage = () => {
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     {ceremony.basePrice && (
                                         <span style={{ fontWeight: '600', color: 'var(--primary)', fontSize: '0.95rem' }}>
-                                            ₹{ceremony.basePrice.toLocaleString('en-IN')} onwards
+                                            ₹{ceremony.basePrice.toLocaleString('en-IN')}
                                         </span>
                                     )}
                                     <button
@@ -156,7 +145,7 @@ const PanditsPage = () => {
                 )}
             </section>
 
-            {/* How It Works - Compact */}
+            {/* How It Works */}
             <section style={{ background: '#F9FAFB', padding: '2rem 1rem' }}>
                 <div className="container">
                     <h3 style={{ textAlign: 'center', marginBottom: '1.5rem', color: 'var(--secondary)', fontSize: '1.1rem' }}>
@@ -191,7 +180,7 @@ const PanditsPage = () => {
                 </div>
             </section>
 
-            {/* CTA Section - Compact */}
+            {/* CTA Section */}
             <section style={{ background: 'var(--secondary)', color: 'white', padding: '2rem 1rem', textAlign: 'center' }}>
                 <div className="container">
                     <h2 style={{ marginBottom: '0.5rem', fontSize: '1.25rem' }}>Want to Become a Pandit Partner?</h2>
