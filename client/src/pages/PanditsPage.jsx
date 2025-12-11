@@ -72,7 +72,7 @@ const PanditsPage = () => {
                     Select a Ceremony
                 </h2>
                 <p style={{ textAlign: 'center', marginBottom: '1.5rem', color: 'var(--text-light)', fontSize: '0.9rem' }}>
-                    Choose the puja you need — our admin will assign the best available pandit
+                    Choose the puja you need — we'll find you the best pandit for your ceremony
                 </p>
 
                 {loading ? (
@@ -160,7 +160,7 @@ const PanditsPage = () => {
                         {[
                             { step: '1', title: 'Select Ceremony', desc: 'Choose the puja you need' },
                             { step: '2', title: 'Pick Date & Time', desc: 'Select your preferred slot' },
-                            { step: '3', title: 'Pandit Assigned', desc: 'We assign the best match' },
+                            { step: '3', title: 'Pandit Matched', desc: 'Best pandit for your puja' },
                             { step: '4', title: 'Puja at Home', desc: 'Pandit arrives on time' }
                         ].map((item, idx) => (
                             <div key={idx} style={{ textAlign: 'center' }}>

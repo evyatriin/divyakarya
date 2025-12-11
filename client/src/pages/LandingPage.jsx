@@ -336,7 +336,7 @@ const LandingPage = () => {
                         {[
                             { icon: <Calendar size={18} />, title: 'Select Puja', desc: 'Choose ceremony' },
                             { icon: <Clock size={18} />, title: 'Pick Slot', desc: 'Date & time' },
-                            { icon: <CheckCircle size={18} />, title: 'Get Pandit', desc: 'We assign one' }
+                            { icon: <CheckCircle size={18} />, title: 'Get Pandit', desc: 'Get matched' }
                         ].map((item, idx) => (
                             <div key={idx} style={{ textAlign: 'center' }}>
                                 <div style={{
