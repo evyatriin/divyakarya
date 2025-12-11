@@ -169,6 +169,22 @@ textarea:focus {
   animation: fadeIn 0.5s ease-out forwards;
 }
 
+/* Marquee - prevent wrapping */
+.marquee-container {
+  overflow: hidden !important;
+}
+
+.marquee-content {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  white-space: nowrap !important;
+}
+
+.marquee-content>* {
+  flex-shrink: 0 !important;
+  flex-wrap: nowrap !important;
+}
+
 /* ========================================
    RESPONSIVE UTILITIES - TABLET (768px)
    ======================================== */

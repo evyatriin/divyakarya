@@ -132,28 +132,30 @@ const LandingPage = () => {
                     </p>
 
                     {/* Scrolling Marquee - 3 Offerings */}
-                    <div style={{
+                    <div className="marquee-container" style={{
                         overflow: 'hidden',
                         background: 'rgba(255,255,255,0.1)',
                         borderRadius: '0.5rem',
                         padding: '0.5rem 0',
                         marginTop: '0.5rem'
                     }}>
-                        <div style={{
+                        <div className="marquee-content" style={{
                             display: 'flex',
-                            gap: '3rem',
-                            animation: 'marquee 15s linear infinite',
-                            whiteSpace: 'nowrap'
+                            gap: '2rem',
+                            animation: 'marquee 20s linear infinite',
+                            whiteSpace: 'nowrap',
+                            flexWrap: 'nowrap',
+                            width: 'max-content'
                         }}>
-                            {[...Array(3)].map((_, i) => (
-                                <div key={i} style={{ display: 'flex', gap: '3rem' }}>
-                                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+                            {[...Array(4)].map((_, i) => (
+                                <div key={i} style={{ display: 'inline-flex', gap: '2rem', flexWrap: 'nowrap', flexShrink: 0 }}>
+                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', flexShrink: 0 }}>
                                         🕉️ <strong>Pandit Booking</strong> - Pujas & Ceremonies
                                     </span>
-                                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', flexShrink: 0 }}>
                                         🔮 <strong>Dosha Remedies</strong> - Manglik, Kaal Sarp
                                     </span>
-                                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', flexShrink: 0 }}>
                                         📱 <strong>e-Pujas Online</strong> - Live Temple Pujas
                                     </span>
                                 </div>
