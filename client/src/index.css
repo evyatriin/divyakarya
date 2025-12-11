@@ -1,35 +1,34 @@
 :root {
   --primary: #D97706;
-  /* Amber 600 */
-  --primary-hover: #B45309;
+  --primary-dark: #B45309;
   --secondary: #1F2937;
-  /* Gray 800 */
-  --accent: #F59E0B;
-  /* Amber 500 */
-  --background: #FFFBEB;
-  /* Amber 50 */
-  --surface: #FFFFFF;
-  --text: #1F2937;
+  --text: #374151;
   --text-light: #6B7280;
+  --background: #FFFBF5;
+  --card-bg: #FFFFFF;
+  --border: #E5E7EB;
   --success: #10B981;
+  --warning: #F59E0B;
   --error: #EF4444;
-  --radius: 12px;
-  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --font-sans: 'Inter', system-ui, sans-serif;
 }
 
 * {
-  box-sizing: border-box;
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-  font-family: var(--font-sans);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background-color: var(--background);
   color: var(--text);
-  line-height: 1.55;
-  font-size: 15px;
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
 }
 
 h1,
@@ -38,12 +37,12 @@ h3,
 h4,
 h5,
 h6 {
-  font-weight: 700;
-  line-height: 1.2;
+  color: var(--secondary);
+  line-height: 1.3;
 }
 
 h1 {
-  font-size: 1.875rem;
+  font-size: 2rem;
 }
 
 h2 {
@@ -58,92 +57,106 @@ h4 {
   font-size: 1.1rem;
 }
 
-p,
-li,
-span {
-  font-size: 0.95rem;
+a {
+  color: var(--primary);
+  text-decoration: none;
 }
 
-button {
-  cursor: pointer;
-  font-family: inherit;
+a:hover {
+  text-decoration: underline;
 }
 
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1rem;
+.card {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  border-radius: var(--radius);
+  border-radius: 8px;
   font-weight: 600;
-  transition: all 0.2s;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
   border: none;
-  text-decoration: none;
 }
 
 .btn-primary {
-  background-color: var(--primary);
+  background: var(--primary);
   color: white;
 }
 
 .btn-primary:hover {
-  background-color: var(--primary-hover);
-  transform: translateY(-1px);
+  background: var(--primary-dark);
 }
 
 .btn-outline {
-  background-color: transparent;
+  background: transparent;
   border: 2px solid var(--primary);
   color: var(--primary);
 }
 
 .btn-outline:hover {
-  background-color: var(--primary);
+  background: var(--primary);
   color: white;
 }
 
-.card {
-  background: var(--surface);
-  border-radius: var(--radius);
-  padding: 1.5rem;
-  box-shadow: var(--shadow);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.input {
+.input,
+textarea {
   width: 100%;
-  padding: 0.75rem;
-  border-radius: var(--radius);
-  border: 1px solid #E5E7EB;
-  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
   font-size: 1rem;
   transition: border-color 0.2s;
+  margin-bottom: 1rem;
+  font-family: inherit;
 }
 
-.input:focus {
+.input:focus,
+textarea:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.1);
 }
 
 .label {
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 500;
-  color: var(--text);
+  color: var(--secondary);
+}
+
+/* Error Message */
+.error-message {
+  background-color: #FEE2E2;
+  color: #991B1B;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+/* Success Message */
+.success-message {
+  background-color: #D1FAE5;
+  color: #065F46;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  text-align: center;
 }
 
 /* Animations */
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(20px);
   }
 
   to {
@@ -156,7 +169,9 @@ button {
   animation: fadeIn 0.5s ease-out forwards;
 }
 
-/* Responsive Utilities */
+/* ========================================
+   RESPONSIVE UTILITIES - TABLET (768px)
+   ======================================== */
 @media (max-width: 768px) {
   body {
     font-size: 14px;
@@ -191,12 +206,89 @@ button {
     font-size: 0.85rem;
   }
 
-  /* Stack grids on mobile */
-  section>div[style*="grid"] {
+  /* Stack ALL grid layouts on mobile */
+  [style*="grid-template-columns: 2fr 1fr"],
+  [style*="grid-template-columns: 1fr 1fr"],
+  [style*="gridTemplateColumns: '2fr 1fr'"],
+  [style*="gridTemplateColumns: '1fr 1fr'"],
+  .grid-responsive {
+    display: block !important;
+  }
+
+  .grid-responsive>* {
+    margin-bottom: 1rem;
+  }
+
+  /* Dashboard headers - stack on mobile */
+  [style*="justifyContent: 'space-between'"],
+  [style*="display: 'flex'"][style*="gap"] {
+    flex-wrap: wrap;
+  }
+
+  /* Tables - add horizontal scroll */
+  table {
+    font-size: 0.8rem;
+  }
+
+  table th,
+  table td {
+    padding: 0.5rem !important;
+    white-space: nowrap;
+  }
+
+  /* Form grids - stack */
+  form [style*="gridTemplateColumns"],
+  form [style*="grid-template-columns"] {
+    display: block !important;
+  }
+
+  form [style*="gridTemplateColumns"]>div,
+  form [style*="grid-template-columns"]>div {
+    margin-bottom: 0.75rem;
+  }
+
+  /* Modal adjustments */
+  [style*="maxWidth: '500px'"],
+  [style*="maxWidth: '400px'"],
+  [style*="max-width: 500px"],
+  [style*="max-width: 400px"] {
+    max-width: 95vw !important;
+    width: 95vw !important;
+    margin: 1rem;
+  }
+
+  /* Slot forms - stack */
+  [style*="gridTemplateColumns: 'repeat(4, 1fr)'"],
+  [style*="grid-template-columns: repeat(4, 1fr)"] {
+    display: block !important;
+  }
+
+  [style*="gridTemplateColumns: 'repeat(4, 1fr)'"]>div,
+  [style*="grid-template-columns: repeat(4, 1fr)"]>div {
+    margin-bottom: 0.75rem;
+  }
+
+  /* Availability management buttons */
+  [style*="display: 'flex'"][style*="gap: '0.5rem'"] {
+    flex-wrap: wrap;
+  }
+
+  /* Stats cards - 2 columns */
+  [style*="gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))'"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.75rem !important;
+  }
+
+  /* Service category cards - stack or 2 columns */
+  [style*="gridTemplateColumns: 'repeat(3, 1fr)'"]:not(.keep-grid),
+  [style*="grid-template-columns: repeat(3, 1fr)"]:not(.keep-grid) {
     grid-template-columns: 1fr !important;
   }
 }
 
+/* ========================================
+   RESPONSIVE UTILITIES - MOBILE (480px)
+   ======================================== */
 @media (max-width: 480px) {
   body {
     font-size: 13px;
@@ -216,10 +308,166 @@ button {
 
   .card {
     padding: 0.875rem;
+    border-radius: 8px;
   }
 
   .btn {
     padding: 0.5rem 0.75rem;
     font-size: 0.8rem;
+  }
+
+  /* Stats cards - single column */
+  [style*="gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))'"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Table container */
+  [style*="overflowX: 'auto'"],
+  [style*="overflow-x: auto"] {
+    margin: 0 -0.5rem;
+    padding: 0 0.5rem;
+  }
+
+  /* Button groups - make full width */
+  [style*="display: 'flex'"][style*="gap"] button {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Dashboard title + buttons header */
+  [style*="justifyContent: 'space-between'"] {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 0.75rem !important;
+  }
+
+  /* Reduce margins/padding */
+  [style*="marginBottom: '2rem'"] {
+    margin-bottom: 1rem !important;
+  }
+
+  [style*="marginTop: '2rem'"] {
+    margin-top: 1rem !important;
+  }
+
+  [style*="padding: '2rem'"] {
+    padding: 1rem !important;
+  }
+
+  /* Revenue card gradient */
+  [style*="padding: '2rem'"][style*="background: 'linear-gradient"] {
+    padding: 1.25rem !important;
+    border-radius: 8px !important;
+  }
+
+  [style*="fontSize: '2.5rem'"] {
+    font-size: 1.75rem !important;
+  }
+
+  /* Why choose us - 2x2 grid on small mobile */
+  [style*="gridTemplateColumns: 'repeat(4, 1fr)'"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.5rem !important;
+  }
+}
+
+/* ========================================
+   UNIVERSAL MOBILE FIXES
+   ======================================== */
+
+/* Make all flex containers wrap */
+@media (max-width: 768px) {
+
+  .container [style*="display: flex"],
+  .card [style*="display: flex"] {
+    flex-wrap: wrap;
+  }
+}
+
+/* Table responsive wrapper */
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Mobile-friendly table */
+@media (max-width: 640px) {
+  .mobile-card-view tbody tr {
+    display: block;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+    padding: 0.75rem;
+  }
+
+  .mobile-card-view tbody td {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.25rem 0 !important;
+    border: none !important;
+  }
+
+  .mobile-card-view tbody td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--text-light);
+  }
+
+  .mobile-card-view thead {
+    display: none;
+  }
+}
+
+/* Hide on mobile */
+@media (max-width: 768px) {
+  .hide-mobile {
+    display: none !important;
+  }
+}
+
+/* Hide on desktop */
+@media (min-width: 769px) {
+  .hide-desktop {
+    display: none !important;
+  }
+}
+
+/* Full width on mobile */
+@media (max-width: 768px) {
+  .full-width-mobile {
+    width: 100% !important;
+  }
+}
+
+/* Stack on mobile */
+@media (max-width: 768px) {
+  .stack-mobile {
+    flex-direction: column !important;
+  }
+
+  .stack-mobile>* {
+    width: 100%;
+  }
+}
+
+/* Touch-friendly buttons */
+@media (max-width: 768px) {
+
+  .btn,
+  button {
+    min-height: 44px;
+  }
+}
+
+/* Input adjustments */
+@media (max-width: 768px) {
+
+  .input,
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+    /* Prevents iOS zoom */
+    min-height: 44px;
   }
 }

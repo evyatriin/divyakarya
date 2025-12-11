@@ -253,8 +253,8 @@ const PanditDashboard = () => {
             )}
 
             {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
                     <h1 style={{ color: 'var(--primary)', margin: 0 }}>Pandit Dashboard</h1>
                     <button
                         onClick={openProfileModal}
@@ -301,24 +301,24 @@ const PanditDashboard = () => {
 
             {/* Availability Management */}
             <div className="card" style={{ marginBottom: '2rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.75rem' }}>
                     <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <Calendar size={24} color="var(--primary)" />
                         My Availability
                     </h3>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                         <input
                             type="date"
                             value={selectedDate}
                             onChange={(e) => setSelectedDate(e.target.value)}
                             className="input"
-                            style={{ width: 'auto', padding: '0.5rem', marginBottom: 0 }}
+                            style={{ width: 'auto', padding: '0.5rem', marginBottom: 0, minWidth: '140px' }}
                         />
-                        <button onClick={addWeekSlots} className="btn btn-outline" style={{ padding: '0.5rem 1rem' }}>
-                            + Add Week
+                        <button onClick={addWeekSlots} className="btn btn-outline" style={{ padding: '0.5rem 0.75rem', fontSize: '0.85rem' }}>
+                            + Week
                         </button>
-                        <button onClick={() => setShowAddSlot(true)} className="btn btn-primary" style={{ padding: '0.5rem 1rem' }}>
-                            <Plus size={16} /> Add Slot
+                        <button onClick={() => setShowAddSlot(true)} className="btn btn-primary" style={{ padding: '0.5rem 0.75rem', fontSize: '0.85rem' }}>
+                            <Plus size={16} /> Slot
                         </button>
                     </div>
                 </div>
@@ -329,45 +329,43 @@ const PanditDashboard = () => {
                         background: '#F9FAFB',
                         padding: '1rem',
                         borderRadius: '8px',
-                        marginBottom: '1rem',
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(4, 1fr)',
-                        gap: '1rem',
-                        alignItems: 'end'
+                        marginBottom: '1rem'
                     }}>
-                        <div>
-                            <label className="label">Date</label>
-                            <input
-                                type="date"
-                                value={newSlot.date}
-                                onChange={(e) => setNewSlot({ ...newSlot, date: e.target.value })}
-                                className="input"
-                                style={{ marginBottom: 0 }}
-                            />
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                            <div>
+                                <label className="label" style={{ fontSize: '0.8rem' }}>Date</label>
+                                <input
+                                    type="date"
+                                    value={newSlot.date}
+                                    onChange={(e) => setNewSlot({ ...newSlot, date: e.target.value })}
+                                    className="input"
+                                    style={{ marginBottom: 0, padding: '0.5rem' }}
+                                />
+                            </div>
+                            <div>
+                                <label className="label" style={{ fontSize: '0.8rem' }}>Start</label>
+                                <input
+                                    type="time"
+                                    value={newSlot.startTime}
+                                    onChange={(e) => setNewSlot({ ...newSlot, startTime: e.target.value })}
+                                    className="input"
+                                    style={{ marginBottom: 0, padding: '0.5rem' }}
+                                />
+                            </div>
+                            <div>
+                                <label className="label" style={{ fontSize: '0.8rem' }}>End</label>
+                                <input
+                                    type="time"
+                                    value={newSlot.endTime}
+                                    onChange={(e) => setNewSlot({ ...newSlot, endTime: e.target.value })}
+                                    className="input"
+                                    style={{ marginBottom: 0, padding: '0.5rem' }}
+                                />
+                            </div>
                         </div>
-                        <div>
-                            <label className="label">Start Time</label>
-                            <input
-                                type="time"
-                                value={newSlot.startTime}
-                                onChange={(e) => setNewSlot({ ...newSlot, startTime: e.target.value })}
-                                className="input"
-                                style={{ marginBottom: 0 }}
-                            />
-                        </div>
-                        <div>
-                            <label className="label">End Time</label>
-                            <input
-                                type="time"
-                                value={newSlot.endTime}
-                                onChange={(e) => setNewSlot({ ...newSlot, endTime: e.target.value })}
-                                className="input"
-                                style={{ marginBottom: 0 }}
-                            />
-                        </div>
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            <button onClick={addAvailabilitySlot} className="btn btn-primary">Save</button>
-                            <button onClick={() => setShowAddSlot(false)} className="btn btn-outline">Cancel</button>
+                        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                            <button onClick={addAvailabilitySlot} className="btn btn-primary" style={{ flex: '1', minWidth: '80px' }}>Save</button>
+                            <button onClick={() => setShowAddSlot(false)} className="btn btn-outline" style={{ flex: '1', minWidth: '80px' }}>Cancel</button>
                         </div>
                     </div>
                 )}
@@ -434,7 +432,7 @@ const PanditDashboard = () => {
             <div className="grid-responsive" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '2rem', marginBottom: '2rem' }}>
                 {/* Revenue Section */}
                 <div className="card">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
                         <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <DollarSign size={24} color="var(--primary)" />
                             Revenue Tracking
