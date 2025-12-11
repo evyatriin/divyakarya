@@ -18,7 +18,7 @@ const LandingPage = () => {
                 setLoading(true);
                 const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
                 const res = await axios.get(`${apiUrl}/api/ceremonies?lang=${language}`);
-                setCeremonies(res.data);
+                setCeremonies(res.data.slice(0, 8)); // Show top 8 ceremonies
             } catch (error) {
                 console.error('Error fetching ceremonies:', error);
             } finally {
@@ -32,6 +32,34 @@ const LandingPage = () => {
         navigate(`/ceremony/${ceremony.slug}`);
     };
 
+    // 3 main service categories
+    const serviceCategories = [
+        {
+            title: 'Pandit Booking',
+            subtitle: 'For Pujas & Ceremonies',
+            icon: '🕉️',
+            gradient: 'linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)',
+            link: '/pandits',
+            cta: 'Book Pandit'
+        },
+        {
+            title: 'Dosha Remedies',
+            subtitle: 'Manglik, Kaal Sarp & More',
+            icon: '🔮',
+            gradient: 'linear-gradient(135deg, #DC2626 0%, #EF4444 100%)',
+            link: '/doshas',
+            cta: 'Explore'
+        },
+        {
+            title: 'e-Pujas Online',
+            subtitle: 'Live Temple Pujas',
+            icon: '📱',
+            gradient: 'linear-gradient(135deg, #D97706 0%, #F59E0B 100%)',
+            link: '/epujas',
+            cta: 'View'
+        }
+    ];
+
     const stats = [
         { value: '10K+', label: 'Families' },
         { value: '500+', label: 'Pandits' },
@@ -41,136 +69,126 @@ const LandingPage = () => {
 
     return (
         <div className="animate-fade-in" style={{ background: 'var(--background)' }}>
-            {/* Hero Section */}
+            {/* Hero Section - Very Compact */}
             <section style={{
                 background: 'linear-gradient(135deg, #1F2937 0%, #374151 100%)',
                 color: 'white',
-                padding: '2rem 1rem 1.5rem',
+                padding: '1.25rem 0.75rem 1rem',
                 textAlign: 'center'
             }}>
                 <div className="container">
                     <div style={{
                         display: 'inline-flex',
                         alignItems: 'center',
-                        gap: '0.4rem',
+                        gap: '0.3rem',
                         background: 'rgba(251,191,36,0.2)',
-                        padding: '0.25rem 0.75rem',
+                        padding: '0.2rem 0.6rem',
                         borderRadius: '1rem',
-                        fontSize: '0.75rem',
-                        marginBottom: '0.75rem'
+                        fontSize: '0.7rem',
+                        marginBottom: '0.5rem'
                     }}>
-                        <Sparkles size={12} style={{ color: '#FBBF24' }} />
+                        <Sparkles size={10} style={{ color: '#FBBF24' }} />
                         <span>Trusted by 10,000+ devotees</span>
                     </div>
 
                     <h1 style={{
-                        fontSize: 'clamp(1.5rem, 4vw, 2.25rem)',
+                        fontSize: 'clamp(1.25rem, 3.5vw, 1.75rem)',
                         fontWeight: '700',
-                        marginBottom: '0.5rem',
+                        marginBottom: '0.35rem',
                         lineHeight: '1.2'
                     }}>
                         Book a Pandit for Your <span style={{ color: '#FBBF24' }}>Ceremony</span>
                     </h1>
 
                     <p style={{
-                        fontSize: '0.9rem',
+                        fontSize: '0.8rem',
                         opacity: 0.9,
-                        maxWidth: '500px',
-                        margin: '0 auto 1rem'
+                        maxWidth: '450px',
+                        margin: '0 auto 0.75rem'
                     }}>
-                        Select a puja below, pick your date & time, and we'll assign a verified pandit
+                        Select a puja, pick your date & time, and we'll assign a verified pandit
                     </p>
-
-                    <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-                        {user ? (
-                            <button
-                                onClick={() => navigate(user.role === 'admin' ? '/admin' : user.role === 'pandit' ? '/pandit' : '/dashboard')}
-                                className="btn"
-                                style={{
-                                    background: '#FBBF24',
-                                    color: '#1F2937',
-                                    padding: '0.6rem 1.25rem',
-                                    fontWeight: '600',
-                                    fontSize: '0.85rem',
-                                    border: 'none',
-                                    borderRadius: '0.4rem',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.4rem'
-                                }}
-                            >
-                                Go to Dashboard <ArrowRight size={14} />
-                            </button>
-                        ) : (
-                            <button
-                                onClick={() => document.getElementById('ceremonies').scrollIntoView({ behavior: 'smooth' })}
-                                className="btn"
-                                style={{
-                                    background: '#FBBF24',
-                                    color: '#1F2937',
-                                    padding: '0.6rem 1.25rem',
-                                    fontWeight: '600',
-                                    fontSize: '0.85rem',
-                                    border: 'none',
-                                    borderRadius: '0.4rem',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.4rem'
-                                }}
-                            >
-                                Book a Ceremony <ArrowRight size={14} />
-                            </button>
-                        )}
-                    </div>
                 </div>
             </section>
 
-            {/* Stats Bar */}
+            {/* Stats Bar - Compact */}
             <section style={{
                 background: 'white',
-                padding: '0.75rem 1rem',
+                padding: '0.5rem 0.75rem',
                 borderBottom: '1px solid #E5E7EB'
             }}>
                 <div className="container" style={{
                     display: 'flex',
                     justifyContent: 'center',
-                    gap: '2rem',
+                    gap: '1.5rem',
                     flexWrap: 'wrap'
                 }}>
                     {stats.map((stat, idx) => (
                         <div key={idx} style={{ textAlign: 'center' }}>
-                            <div style={{ fontSize: '1.1rem', fontWeight: '700', color: 'var(--primary)' }}>{stat.value}</div>
-                            <div style={{ fontSize: '0.7rem', color: 'var(--text-light)' }}>{stat.label}</div>
+                            <div style={{ fontSize: '0.95rem', fontWeight: '700', color: 'var(--primary)' }}>{stat.value}</div>
+                            <div style={{ fontSize: '0.6rem', color: 'var(--text-light)' }}>{stat.label}</div>
                         </div>
                     ))}
                 </div>
             </section>
 
-            {/* Ceremonies Grid - Main Section */}
-            <section id="ceremonies" className="container" style={{ padding: '2rem 1rem' }}>
-                <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-                    <h2 style={{
-                        fontSize: '1.25rem',
-                        color: 'var(--secondary)',
-                        marginBottom: '0.25rem',
-                        fontWeight: '700'
-                    }}>
-                        Select a Ceremony
+            {/* 3 Service Categories - Prominent */}
+            <section className="container" style={{ padding: '1.25rem 0.75rem' }}>
+                <div style={{ textAlign: 'center', marginBottom: '0.75rem' }}>
+                    <h2 style={{ fontSize: '1rem', color: 'var(--secondary)', marginBottom: '0.15rem', fontWeight: '700' }}>
+                        Our Services
                     </h2>
-                    <p style={{ color: 'var(--text-light)', fontSize: '0.85rem' }}>
-                        Choose a puja and we'll assign a verified pandit for you
-                    </p>
+                    <p style={{ color: 'var(--text-light)', fontSize: '0.75rem' }}>Select a service to get started</p>
+                </div>
+
+                <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(3, 1fr)',
+                    gap: '0.75rem'
+                }}>
+                    {serviceCategories.map((service, idx) => (
+                        <div
+                            key={idx}
+                            onClick={() => navigate(service.link)}
+                            style={{
+                                background: service.gradient,
+                                borderRadius: '0.6rem',
+                                padding: '1rem 0.75rem',
+                                color: 'white',
+                                cursor: 'pointer',
+                                textAlign: 'center',
+                                transition: 'transform 0.2s'
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-3px)'}
+                            onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                        >
+                            <div style={{ fontSize: '1.75rem', marginBottom: '0.35rem' }}>{service.icon}</div>
+                            <h3 style={{ fontSize: '0.85rem', marginBottom: '0.15rem', fontWeight: '600' }}>{service.title}</h3>
+                            <p style={{ opacity: 0.9, fontSize: '0.65rem', marginBottom: '0.5rem' }}>{service.subtitle}</p>
+                            <span style={{ fontSize: '0.7rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.2rem' }}>
+                                {service.cta} <ArrowRight size={10} />
+                            </span>
+                        </div>
+                    ))}
+                </div>
+            </section>
+
+            {/* Ceremonies Grid */}
+            <section className="container" style={{ padding: '1rem 0.75rem 1.5rem' }}>
+                <div style={{ textAlign: 'center', marginBottom: '0.75rem' }}>
+                    <h2 style={{ fontSize: '1rem', color: 'var(--secondary)', marginBottom: '0.15rem', fontWeight: '700' }}>
+                        Popular Ceremonies
+                    </h2>
+                    <p style={{ color: 'var(--text-light)', fontSize: '0.75rem' }}>Book a pandit for these pujas</p>
                 </div>
 
                 {loading ? (
-                    <p style={{ textAlign: 'center' }}>Loading ceremonies...</p>
+                    <p style={{ textAlign: 'center', fontSize: '0.8rem' }}>Loading...</p>
                 ) : (
                     <div style={{
                         display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-                        gap: '1rem'
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                        gap: '0.75rem'
                     }}>
                         {ceremonies.map(ceremony => (
                             <div
@@ -179,51 +197,51 @@ const LandingPage = () => {
                                 onClick={() => handleCeremonyClick(ceremony)}
                                 style={{
                                     cursor: 'pointer',
-                                    padding: '1.25rem',
+                                    padding: '0.875rem',
                                     transition: 'all 0.2s ease'
                                 }}
                                 onMouseEnter={e => {
-                                    e.currentTarget.style.transform = 'translateY(-4px)';
-                                    e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.12)';
+                                    e.currentTarget.style.transform = 'translateY(-3px)';
+                                    e.currentTarget.style.boxShadow = '0 6px 12px rgba(0,0,0,0.1)';
                                 }}
                                 onMouseLeave={e => {
                                     e.currentTarget.style.transform = 'translateY(0)';
                                     e.currentTarget.style.boxShadow = '';
                                 }}
                             >
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
                                     {ceremony.image ? (
                                         <img
                                             src={ceremony.image}
                                             alt={ceremony.title}
-                                            style={{ width: '48px', height: '48px', borderRadius: '0.5rem', objectFit: 'cover' }}
+                                            style={{ width: '36px', height: '36px', borderRadius: '0.4rem', objectFit: 'cover' }}
                                         />
                                     ) : (
-                                        <div style={{ fontSize: '2.5rem' }}>{ceremony.icon}</div>
+                                        <div style={{ fontSize: '1.75rem' }}>{ceremony.icon}</div>
                                     )}
-                                    <div>
-                                        <h3 style={{ margin: 0, fontSize: '1rem' }}>{ceremony.title}</h3>
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                        <h3 style={{ margin: 0, fontSize: '0.85rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ceremony.title}</h3>
                                         {ceremony.duration && (
-                                            <span style={{ fontSize: '0.75rem', color: 'var(--text-light)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                                                <Clock size={12} /> {ceremony.duration}
+                                            <span style={{ fontSize: '0.65rem', color: 'var(--text-light)', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                                                <Clock size={10} /> {ceremony.duration}
                                             </span>
                                         )}
                                     </div>
                                 </div>
 
-                                <p style={{ color: 'var(--text-light)', fontSize: '0.8rem', marginBottom: '0.75rem', lineHeight: '1.4' }}>
-                                    {ceremony.description?.substring(0, 80)}...
+                                <p style={{ color: 'var(--text-light)', fontSize: '0.7rem', marginBottom: '0.5rem', lineHeight: '1.3' }}>
+                                    {ceremony.description?.substring(0, 60)}...
                                 </p>
 
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     {ceremony.basePrice && (
-                                        <span style={{ fontWeight: '600', color: 'var(--primary)', fontSize: '0.9rem' }}>
+                                        <span style={{ fontWeight: '600', color: 'var(--primary)', fontSize: '0.8rem' }}>
                                             ₹{ceremony.basePrice.toLocaleString('en-IN')}
                                         </span>
                                     )}
                                     <button
                                         className="btn btn-primary"
-                                        style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem' }}
+                                        style={{ padding: '0.3rem 0.6rem', fontSize: '0.7rem' }}
                                     >
                                         Book Now
                                     </button>
@@ -234,166 +252,97 @@ const LandingPage = () => {
                 )}
             </section>
 
-            {/* How It Works */}
-            <section style={{ background: '#F9FAFB', padding: '2rem 1rem' }}>
+            {/* How It Works - Compact */}
+            <section style={{ background: '#F9FAFB', padding: '1rem 0.75rem' }}>
                 <div className="container">
-                    <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-                        <h2 style={{ color: 'var(--secondary)', fontSize: '1.1rem', marginBottom: '0.25rem' }}>How It Works</h2>
-                        <p style={{ color: 'var(--text-light)', fontSize: '0.8rem' }}>Book your puja in 3 simple steps</p>
-                    </div>
-
+                    <h3 style={{ textAlign: 'center', marginBottom: '0.75rem', color: 'var(--secondary)', fontSize: '0.9rem' }}>
+                        How It Works
+                    </h3>
                     <div style={{
                         display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-                        gap: '1.5rem'
+                        gridTemplateColumns: 'repeat(3, 1fr)',
+                        gap: '0.75rem'
                     }}>
                         {[
-                            { step: '1', icon: <Calendar size={20} />, title: 'Select Ceremony', desc: 'Choose puja from list' },
-                            { step: '2', icon: <Clock size={20} />, title: 'Pick Date & Time', desc: 'Choose your slot' },
-                            { step: '3', icon: <CheckCircle size={20} />, title: 'We Assign Pandit', desc: 'Verified pandit assigned' }
+                            { icon: <Calendar size={16} />, title: 'Select Puja', desc: 'Choose ceremony' },
+                            { icon: <Clock size={16} />, title: 'Pick Slot', desc: 'Date & time' },
+                            { icon: <CheckCircle size={16} />, title: 'Get Pandit', desc: 'We assign one' }
                         ].map((item, idx) => (
                             <div key={idx} style={{ textAlign: 'center' }}>
                                 <div style={{
-                                    width: '44px',
-                                    height: '44px',
+                                    width: '32px',
+                                    height: '32px',
                                     background: 'linear-gradient(135deg, var(--primary) 0%, #A855F7 100%)',
-                                    borderRadius: '0.75rem',
+                                    borderRadius: '0.5rem',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    margin: '0 auto 0.5rem',
+                                    margin: '0 auto 0.35rem',
                                     color: 'white'
                                 }}>
                                     {item.icon}
                                 </div>
-                                <h4 style={{ marginBottom: '0.25rem', color: 'var(--secondary)', fontSize: '0.85rem' }}>{item.title}</h4>
-                                <p style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}>{item.desc}</p>
+                                <h4 style={{ marginBottom: '0.15rem', color: 'var(--secondary)', fontSize: '0.75rem' }}>{item.title}</h4>
+                                <p style={{ fontSize: '0.65rem', color: 'var(--text-light)' }}>{item.desc}</p>
                             </div>
                         ))}
                     </div>
                 </div>
             </section>
 
-            {/* Additional Services - Doshas & e-Pujas */}
-            <section className="container" style={{ padding: '2rem 1rem' }}>
-                <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-                    <h2 style={{ color: 'var(--secondary)', fontSize: '1.1rem', marginBottom: '0.25rem' }}>More Services</h2>
-                    <p style={{ color: 'var(--text-light)', fontSize: '0.8rem' }}>Explore additional offerings</p>
-                </div>
-
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                    gap: '1rem'
-                }}>
-                    {/* Dosha Remedies Card */}
-                    <div
-                        onClick={() => navigate('/doshas')}
-                        style={{
-                            background: 'linear-gradient(135deg, #DC2626 0%, #EF4444 100%)',
-                            borderRadius: '0.75rem',
-                            padding: '1.5rem',
-                            color: 'white',
-                            cursor: 'pointer',
-                            transition: 'transform 0.2s'
-                        }}
-                        onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-4px)'}
-                        onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
-                    >
-                        <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🔮</div>
-                        <h3 style={{ fontSize: '1.1rem', marginBottom: '0.25rem' }}>Dosha Remedies</h3>
-                        <p style={{ opacity: 0.9, fontSize: '0.85rem', marginBottom: '0.75rem' }}>
-                            Manglik, Kaal Sarp, Pitra Dosha remedies
-                        </p>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem' }}>
-                            Explore <ArrowRight size={14} />
-                        </span>
-                    </div>
-
-                    {/* e-Pujas Card */}
-                    <div
-                        onClick={() => navigate('/epujas')}
-                        style={{
-                            background: 'linear-gradient(135deg, #D97706 0%, #F59E0B 100%)',
-                            borderRadius: '0.75rem',
-                            padding: '1.5rem',
-                            color: 'white',
-                            cursor: 'pointer',
-                            transition: 'transform 0.2s'
-                        }}
-                        onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-4px)'}
-                        onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
-                    >
-                        <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📱</div>
-                        <h3 style={{ fontSize: '1.1rem', marginBottom: '0.25rem' }}>e-Pujas Online</h3>
-                        <p style={{ opacity: 0.9, fontSize: '0.85rem', marginBottom: '0.75rem' }}>
-                            Live temple pujas & virtual ceremonies
-                        </p>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem' }}>
-                            Explore <ArrowRight size={14} />
-                        </span>
-                    </div>
-                </div>
-            </section>
-
-            {/* Why Choose Us */}
-            <section style={{ background: 'var(--secondary)', color: 'white', padding: '1.5rem 1rem' }}>
+            {/* Why Choose Us - Very Compact */}
+            <section style={{ background: 'var(--secondary)', color: 'white', padding: '1rem 0.75rem' }}>
                 <div className="container">
-                    <h2 style={{ textAlign: 'center', marginBottom: '1rem', fontSize: '1.1rem' }}>Why DivyaKarya?</h2>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem' }}>
-                        <div style={{ textAlign: 'center' }}>
-                            <Shield size={24} style={{ color: '#FBBF24', marginBottom: '0.4rem' }} />
-                            <h4 style={{ fontSize: '0.85rem', marginBottom: '0.2rem' }}>Verified Pandits</h4>
-                            <p style={{ fontSize: '0.7rem', opacity: 0.8 }}>Background verified</p>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem', textAlign: 'center' }}>
+                        <div>
+                            <Shield size={18} style={{ color: '#FBBF24', marginBottom: '0.25rem' }} />
+                            <h4 style={{ fontSize: '0.7rem', marginBottom: '0.1rem' }}>Verified</h4>
                         </div>
-                        <div style={{ textAlign: 'center' }}>
-                            <Clock size={24} style={{ color: '#FBBF24', marginBottom: '0.4rem' }} />
-                            <h4 style={{ fontSize: '0.85rem', marginBottom: '0.2rem' }}>Flexible Timing</h4>
-                            <p style={{ fontSize: '0.7rem', opacity: 0.8 }}>Your convenience</p>
+                        <div>
+                            <Clock size={18} style={{ color: '#FBBF24', marginBottom: '0.25rem' }} />
+                            <h4 style={{ fontSize: '0.7rem', marginBottom: '0.1rem' }}>On-Time</h4>
                         </div>
-                        <div style={{ textAlign: 'center' }}>
-                            <Star size={24} style={{ color: '#FBBF24', marginBottom: '0.4rem' }} />
-                            <h4 style={{ fontSize: '0.85rem', marginBottom: '0.2rem' }}>4.8+ Rating</h4>
-                            <p style={{ fontSize: '0.7rem', opacity: 0.8 }}>Quality service</p>
+                        <div>
+                            <Star size={18} style={{ color: '#FBBF24', marginBottom: '0.25rem' }} />
+                            <h4 style={{ fontSize: '0.7rem', marginBottom: '0.1rem' }}>4.8+ Rated</h4>
                         </div>
-                        <div style={{ textAlign: 'center' }}>
-                            <Video size={24} style={{ color: '#FBBF24', marginBottom: '0.4rem' }} />
-                            <h4 style={{ fontSize: '0.85rem', marginBottom: '0.2rem' }}>e-Puja Support</h4>
-                            <p style={{ fontSize: '0.7rem', opacity: 0.8 }}>Join from anywhere</p>
+                        <div>
+                            <Video size={18} style={{ color: '#FBBF24', marginBottom: '0.25rem' }} />
+                            <h4 style={{ fontSize: '0.7rem', marginBottom: '0.1rem' }}>e-Puja</h4>
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* CTA Section */}
+            {/* CTA Section - Compact */}
             <section style={{
                 background: 'linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)',
                 color: 'white',
-                padding: '1.5rem 1rem',
+                padding: '1rem 0.75rem',
                 textAlign: 'center'
             }}>
                 <div className="container">
-                    <h2 style={{ marginBottom: '0.5rem', fontSize: '1.1rem' }}>
-                        Ready to Book Your Ceremony?
+                    <h2 style={{ marginBottom: '0.35rem', fontSize: '0.95rem' }}>
+                        Ready to Book?
                     </h2>
-                    <p style={{ opacity: 0.9, marginBottom: '1rem', fontSize: '0.85rem' }}>
-                        Join thousands of families who trust DivyaKarya
+                    <p style={{ opacity: 0.9, marginBottom: '0.6rem', fontSize: '0.75rem' }}>
+                        Join thousands of happy families
                     </p>
                     <button
-                        onClick={() => document.getElementById('ceremonies').scrollIntoView({ behavior: 'smooth' })}
+                        onClick={() => user ? navigate('/dashboard') : navigate('/register')}
                         className="btn"
                         style={{
                             background: 'white',
                             color: '#7C3AED',
-                            padding: '0.6rem 1.5rem',
+                            padding: '0.5rem 1rem',
                             fontWeight: '600',
-                            fontSize: '0.9rem',
+                            fontSize: '0.8rem',
                             border: 'none',
-                            borderRadius: '0.4rem',
+                            borderRadius: '0.35rem',
                             cursor: 'pointer'
                         }}
                     >
-                        Browse Ceremonies
+                        {user ? 'Go to Dashboard' : 'Get Started'}
                     </button>
                 </div>
             </section>

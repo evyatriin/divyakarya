@@ -158,28 +158,68 @@ button {
 
 /* Responsive Utilities */
 @media (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+
   .container {
-    padding: 0 1rem;
+    padding: 0 0.75rem;
   }
 
   h1 {
-    font-size: 2rem !important;
+    font-size: 1.5rem !important;
   }
 
   h2 {
-    font-size: 1.75rem !important;
+    font-size: 1.25rem !important;
   }
 
   h3 {
-    font-size: 1.5rem !important;
+    font-size: 1.1rem !important;
+  }
+
+  h4 {
+    font-size: 1rem !important;
   }
 
   .card {
     padding: 1rem;
   }
 
-  /* Make grids stack on mobile */
-  .grid-responsive {
+  .btn {
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  /* Stack grids on mobile */
+  section>div[style*="grid"] {
     grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    font-size: 13px;
+  }
+
+  .container {
+    padding: 0 0.5rem;
+  }
+
+  h1 {
+    font-size: 1.35rem !important;
+  }
+
+  h2 {
+    font-size: 1.15rem !important;
+  }
+
+  .card {
+    padding: 0.875rem;
+  }
+
+  .btn {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
   }
 }
