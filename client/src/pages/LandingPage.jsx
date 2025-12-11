@@ -5,6 +5,28 @@ import { useAuth } from '../context/AuthContext';
 import { Star, ArrowRight, CheckCircle, Sparkles, Video, Shield, Clock, Calendar } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
+// Default ceremony icons as fallback
+const ceremonyIcons = {
+    'satyanarayan': '🙏',
+    'grihapravesh': '🏠',
+    'naamkaranam': '👶',
+    'ganapathi': '🐘',
+    'upanayanam': '📿',
+    'bhumi': '🌍',
+    'navagraha': '🪐',
+    'vivah': '💒',
+    'shanti': '☮️',
+    'default': '🕉️'
+};
+
+const getIconForCeremony = (ceremony) => {
+    const slug = ceremony.slug?.toLowerCase() || '';
+    for (const key in ceremonyIcons) {
+        if (slug.includes(key)) return ceremonyIcons[key];
+    }
+    return ceremony.icon || ceremonyIcons.default;
+};
+
 const LandingPage = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
@@ -18,7 +40,7 @@ const LandingPage = () => {
                 setLoading(true);
                 const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
                 const res = await axios.get(`${apiUrl}/api/ceremonies?lang=${language}`);
-                setCeremonies(res.data.slice(0, 8)); // Show top 8 ceremonies
+                setCeremonies(res.data.slice(0, 8));
             } catch (error) {
                 console.error('Error fetching ceremonies:', error);
             } finally {
@@ -69,11 +91,11 @@ const LandingPage = () => {
 
     return (
         <div className="animate-fade-in" style={{ background: 'var(--background)' }}>
-            {/* Hero Section - Very Compact */}
+            {/* Hero Section */}
             <section style={{
                 background: 'linear-gradient(135deg, #1F2937 0%, #374151 100%)',
                 color: 'white',
-                padding: '1.25rem 0.75rem 1rem',
+                padding: '1.5rem 1rem 1.25rem',
                 textAlign: 'center'
             }}>
                 <div className="container">
@@ -82,69 +104,107 @@ const LandingPage = () => {
                         alignItems: 'center',
                         gap: '0.3rem',
                         background: 'rgba(251,191,36,0.2)',
-                        padding: '0.2rem 0.6rem',
+                        padding: '0.25rem 0.75rem',
                         borderRadius: '1rem',
-                        fontSize: '0.7rem',
-                        marginBottom: '0.5rem'
+                        fontSize: '0.75rem',
+                        marginBottom: '0.6rem'
                     }}>
-                        <Sparkles size={10} style={{ color: '#FBBF24' }} />
+                        <Sparkles size={12} style={{ color: '#FBBF24' }} />
                         <span>Trusted by 10,000+ devotees</span>
                     </div>
 
                     <h1 style={{
-                        fontSize: 'clamp(1.25rem, 3.5vw, 1.75rem)',
+                        fontSize: 'clamp(1.5rem, 4vw, 2rem)',
                         fontWeight: '700',
-                        marginBottom: '0.35rem',
+                        marginBottom: '0.4rem',
                         lineHeight: '1.2'
                     }}>
                         Book a Pandit for Your <span style={{ color: '#FBBF24' }}>Ceremony</span>
                     </h1>
 
                     <p style={{
-                        fontSize: '0.8rem',
+                        fontSize: '0.85rem',
                         opacity: 0.9,
-                        maxWidth: '450px',
+                        maxWidth: '500px',
                         margin: '0 auto 0.75rem'
                     }}>
                         Select a puja, pick your date & time, and we'll assign a verified pandit
                     </p>
+
+                    {/* Scrolling Marquee - 3 Offerings */}
+                    <div style={{
+                        overflow: 'hidden',
+                        background: 'rgba(255,255,255,0.1)',
+                        borderRadius: '0.5rem',
+                        padding: '0.5rem 0',
+                        marginTop: '0.5rem'
+                    }}>
+                        <div style={{
+                            display: 'flex',
+                            gap: '3rem',
+                            animation: 'marquee 15s linear infinite',
+                            whiteSpace: 'nowrap'
+                        }}>
+                            {[...Array(3)].map((_, i) => (
+                                <div key={i} style={{ display: 'flex', gap: '3rem' }}>
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+                                        🕉️ <strong>Pandit Booking</strong> - Pujas & Ceremonies
+                                    </span>
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+                                        🔮 <strong>Dosha Remedies</strong> - Manglik, Kaal Sarp
+                                    </span>
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
+                                        📱 <strong>e-Pujas Online</strong> - Live Temple Pujas
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                 </div>
             </section>
 
-            {/* Stats Bar - Compact */}
+            {/* Marquee Animation CSS */}
+            <style>{`
+                @keyframes marquee {
+                    0% { transform: translateX(0); }
+                    100% { transform: translateX(-33.33%); }
+                }
+            `}</style>
+
+            {/* Stats Bar */}
             <section style={{
                 background: 'white',
-                padding: '0.5rem 0.75rem',
+                padding: '0.6rem 1rem',
                 borderBottom: '1px solid #E5E7EB'
             }}>
                 <div className="container" style={{
                     display: 'flex',
                     justifyContent: 'center',
-                    gap: '1.5rem',
+                    gap: '2rem',
                     flexWrap: 'wrap'
                 }}>
                     {stats.map((stat, idx) => (
                         <div key={idx} style={{ textAlign: 'center' }}>
-                            <div style={{ fontSize: '0.95rem', fontWeight: '700', color: 'var(--primary)' }}>{stat.value}</div>
-                            <div style={{ fontSize: '0.6rem', color: 'var(--text-light)' }}>{stat.label}</div>
+                            <div style={{ fontSize: '1rem', fontWeight: '700', color: 'var(--primary)' }}>{stat.value}</div>
+                            <div style={{ fontSize: '0.65rem', color: 'var(--text-light)' }}>{stat.label}</div>
                         </div>
                     ))}
                 </div>
             </section>
 
-            {/* 3 Service Categories - Prominent */}
-            <section className="container" style={{ padding: '1.25rem 0.75rem' }}>
-                <div style={{ textAlign: 'center', marginBottom: '0.75rem' }}>
-                    <h2 style={{ fontSize: '1rem', color: 'var(--secondary)', marginBottom: '0.15rem', fontWeight: '700' }}>
+            {/* 3 Service Categories */}
+            <section className="container" style={{ padding: '1.5rem 1rem' }}>
+                <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+                    <h2 style={{ fontSize: '1.1rem', color: 'var(--secondary)', marginBottom: '0.2rem', fontWeight: '700' }}>
                         Our Services
                     </h2>
-                    <p style={{ color: 'var(--text-light)', fontSize: '0.75rem' }}>Select a service to get started</p>
+                    <p style={{ color: 'var(--text-light)', fontSize: '0.8rem' }}>Select a service to get started</p>
                 </div>
 
                 <div style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(3, 1fr)',
-                    gap: '0.75rem'
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+                    gap: '1rem'
                 }}>
                     {serviceCategories.map((service, idx) => (
                         <div
@@ -152,43 +212,43 @@ const LandingPage = () => {
                             onClick={() => navigate(service.link)}
                             style={{
                                 background: service.gradient,
-                                borderRadius: '0.6rem',
-                                padding: '1rem 0.75rem',
+                                borderRadius: '0.75rem',
+                                padding: '1.25rem 1rem',
                                 color: 'white',
                                 cursor: 'pointer',
                                 textAlign: 'center',
                                 transition: 'transform 0.2s'
                             }}
-                            onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-3px)'}
+                            onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-4px)'}
                             onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
                         >
-                            <div style={{ fontSize: '1.75rem', marginBottom: '0.35rem' }}>{service.icon}</div>
-                            <h3 style={{ fontSize: '0.85rem', marginBottom: '0.15rem', fontWeight: '600' }}>{service.title}</h3>
-                            <p style={{ opacity: 0.9, fontSize: '0.65rem', marginBottom: '0.5rem' }}>{service.subtitle}</p>
-                            <span style={{ fontSize: '0.7rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.2rem' }}>
-                                {service.cta} <ArrowRight size={10} />
+                            <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>{service.icon}</div>
+                            <h3 style={{ fontSize: '0.95rem', marginBottom: '0.2rem', fontWeight: '600' }}>{service.title}</h3>
+                            <p style={{ opacity: 0.9, fontSize: '0.7rem', marginBottom: '0.6rem' }}>{service.subtitle}</p>
+                            <span style={{ fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem' }}>
+                                {service.cta} <ArrowRight size={12} />
                             </span>
                         </div>
                     ))}
                 </div>
             </section>
 
-            {/* Ceremonies Grid */}
-            <section className="container" style={{ padding: '1rem 0.75rem 1.5rem' }}>
-                <div style={{ textAlign: 'center', marginBottom: '0.75rem' }}>
-                    <h2 style={{ fontSize: '1rem', color: 'var(--secondary)', marginBottom: '0.15rem', fontWeight: '700' }}>
+            {/* Ceremonies Grid - 10% larger */}
+            <section className="container" style={{ padding: '1.25rem 1rem 2rem' }}>
+                <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+                    <h2 style={{ fontSize: '1.1rem', color: 'var(--secondary)', marginBottom: '0.2rem', fontWeight: '700' }}>
                         Popular Ceremonies
                     </h2>
-                    <p style={{ color: 'var(--text-light)', fontSize: '0.75rem' }}>Book a pandit for these pujas</p>
+                    <p style={{ color: 'var(--text-light)', fontSize: '0.8rem' }}>Book a pandit for these pujas</p>
                 </div>
 
                 {loading ? (
-                    <p style={{ textAlign: 'center', fontSize: '0.8rem' }}>Loading...</p>
+                    <p style={{ textAlign: 'center', fontSize: '0.85rem' }}>Loading...</p>
                 ) : (
                     <div style={{
                         display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                        gap: '0.75rem'
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                        gap: '1rem'
                     }}>
                         {ceremonies.map(ceremony => (
                             <div
@@ -197,52 +257,57 @@ const LandingPage = () => {
                                 onClick={() => handleCeremonyClick(ceremony)}
                                 style={{
                                     cursor: 'pointer',
-                                    padding: '0.875rem',
+                                    padding: '1.1rem',
                                     transition: 'all 0.2s ease'
                                 }}
                                 onMouseEnter={e => {
-                                    e.currentTarget.style.transform = 'translateY(-3px)';
-                                    e.currentTarget.style.boxShadow = '0 6px 12px rgba(0,0,0,0.1)';
+                                    e.currentTarget.style.transform = 'translateY(-4px)';
+                                    e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.1)';
                                 }}
                                 onMouseLeave={e => {
                                     e.currentTarget.style.transform = 'translateY(0)';
                                     e.currentTarget.style.boxShadow = '';
                                 }}
                             >
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                                    {ceremony.image ? (
-                                        <img
-                                            src={ceremony.image}
-                                            alt={ceremony.title}
-                                            style={{ width: '36px', height: '36px', borderRadius: '0.4rem', objectFit: 'cover' }}
-                                        />
-                                    ) : (
-                                        <div style={{ fontSize: '1.75rem' }}>{ceremony.icon}</div>
-                                    )}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.6rem' }}>
+                                    {/* Icon - Always show emoji, with image as overlay if available */}
+                                    <div style={{
+                                        width: '44px',
+                                        height: '44px',
+                                        borderRadius: '0.5rem',
+                                        background: 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '1.5rem',
+                                        flexShrink: 0
+                                    }}>
+                                        {getIconForCeremony(ceremony)}
+                                    </div>
                                     <div style={{ flex: 1, minWidth: 0 }}>
-                                        <h3 style={{ margin: 0, fontSize: '0.85rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ceremony.title}</h3>
+                                        <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: '600' }}>{ceremony.title}</h3>
                                         {ceremony.duration && (
-                                            <span style={{ fontSize: '0.65rem', color: 'var(--text-light)', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
-                                                <Clock size={10} /> {ceremony.duration}
+                                            <span style={{ fontSize: '0.7rem', color: 'var(--text-light)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                                <Clock size={11} /> {ceremony.duration}
                                             </span>
                                         )}
                                     </div>
                                 </div>
 
-                                <p style={{ color: 'var(--text-light)', fontSize: '0.7rem', marginBottom: '0.5rem', lineHeight: '1.3' }}>
-                                    {ceremony.description?.substring(0, 60)}...
+                                <p style={{ color: 'var(--text-light)', fontSize: '0.8rem', marginBottom: '0.7rem', lineHeight: '1.4' }}>
+                                    {ceremony.description?.substring(0, 70)}...
                                 </p>
 
-                                <div style={{ display: 'flex', gap: '0.35rem' }}>
+                                <div style={{ display: 'flex', gap: '0.5rem' }}>
                                     <button
                                         className="btn btn-primary"
-                                        style={{ flex: 1, padding: '0.3rem 0.5rem', fontSize: '0.65rem' }}
+                                        style={{ flex: 1, padding: '0.4rem 0.6rem', fontSize: '0.75rem' }}
                                     >
                                         Book Now
                                     </button>
                                     <button
                                         className="btn btn-outline"
-                                        style={{ flex: 1, padding: '0.3rem 0.5rem', fontSize: '0.65rem' }}
+                                        style={{ flex: 1, padding: '0.4rem 0.6rem', fontSize: '0.75rem' }}
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             navigate(`/ceremony/${ceremony.slug}?muhurat=true`);
@@ -257,80 +322,80 @@ const LandingPage = () => {
                 )}
             </section>
 
-            {/* How It Works - Compact */}
-            <section style={{ background: '#F9FAFB', padding: '1rem 0.75rem' }}>
+            {/* How It Works */}
+            <section style={{ background: '#F9FAFB', padding: '1.25rem 1rem' }}>
                 <div className="container">
-                    <h3 style={{ textAlign: 'center', marginBottom: '0.75rem', color: 'var(--secondary)', fontSize: '0.9rem' }}>
+                    <h3 style={{ textAlign: 'center', marginBottom: '1rem', color: 'var(--secondary)', fontSize: '1rem' }}>
                         How It Works
                     </h3>
                     <div style={{
                         display: 'grid',
-                        gridTemplateColumns: 'repeat(3, 1fr)',
-                        gap: '0.75rem'
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))',
+                        gap: '1rem'
                     }}>
                         {[
-                            { icon: <Calendar size={16} />, title: 'Select Puja', desc: 'Choose ceremony' },
-                            { icon: <Clock size={16} />, title: 'Pick Slot', desc: 'Date & time' },
-                            { icon: <CheckCircle size={16} />, title: 'Get Pandit', desc: 'We assign one' }
+                            { icon: <Calendar size={18} />, title: 'Select Puja', desc: 'Choose ceremony' },
+                            { icon: <Clock size={18} />, title: 'Pick Slot', desc: 'Date & time' },
+                            { icon: <CheckCircle size={18} />, title: 'Get Pandit', desc: 'We assign one' }
                         ].map((item, idx) => (
                             <div key={idx} style={{ textAlign: 'center' }}>
                                 <div style={{
-                                    width: '32px',
-                                    height: '32px',
+                                    width: '40px',
+                                    height: '40px',
                                     background: 'linear-gradient(135deg, var(--primary) 0%, #A855F7 100%)',
-                                    borderRadius: '0.5rem',
+                                    borderRadius: '0.6rem',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    margin: '0 auto 0.35rem',
+                                    margin: '0 auto 0.5rem',
                                     color: 'white'
                                 }}>
                                     {item.icon}
                                 </div>
-                                <h4 style={{ marginBottom: '0.15rem', color: 'var(--secondary)', fontSize: '0.75rem' }}>{item.title}</h4>
-                                <p style={{ fontSize: '0.65rem', color: 'var(--text-light)' }}>{item.desc}</p>
+                                <h4 style={{ marginBottom: '0.2rem', color: 'var(--secondary)', fontSize: '0.85rem' }}>{item.title}</h4>
+                                <p style={{ fontSize: '0.7rem', color: 'var(--text-light)' }}>{item.desc}</p>
                             </div>
                         ))}
                     </div>
                 </div>
             </section>
 
-            {/* Why Choose Us - Very Compact */}
-            <section style={{ background: 'var(--secondary)', color: 'white', padding: '1rem 0.75rem' }}>
+            {/* Why Choose Us */}
+            <section style={{ background: 'var(--secondary)', color: 'white', padding: '1.25rem 1rem' }}>
                 <div className="container">
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem', textAlign: 'center' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.75rem', textAlign: 'center' }}>
                         <div>
-                            <Shield size={18} style={{ color: '#FBBF24', marginBottom: '0.25rem' }} />
-                            <h4 style={{ fontSize: '0.7rem', marginBottom: '0.1rem' }}>Verified</h4>
+                            <Shield size={20} style={{ color: '#FBBF24', marginBottom: '0.3rem' }} />
+                            <h4 style={{ fontSize: '0.75rem', marginBottom: '0.15rem' }}>Verified</h4>
                         </div>
                         <div>
-                            <Clock size={18} style={{ color: '#FBBF24', marginBottom: '0.25rem' }} />
-                            <h4 style={{ fontSize: '0.7rem', marginBottom: '0.1rem' }}>On-Time</h4>
+                            <Clock size={20} style={{ color: '#FBBF24', marginBottom: '0.3rem' }} />
+                            <h4 style={{ fontSize: '0.75rem', marginBottom: '0.15rem' }}>On-Time</h4>
                         </div>
                         <div>
-                            <Star size={18} style={{ color: '#FBBF24', marginBottom: '0.25rem' }} />
-                            <h4 style={{ fontSize: '0.7rem', marginBottom: '0.1rem' }}>4.8+ Rated</h4>
+                            <Star size={20} style={{ color: '#FBBF24', marginBottom: '0.3rem' }} />
+                            <h4 style={{ fontSize: '0.75rem', marginBottom: '0.15rem' }}>4.8+ Rated</h4>
                         </div>
                         <div>
-                            <Video size={18} style={{ color: '#FBBF24', marginBottom: '0.25rem' }} />
-                            <h4 style={{ fontSize: '0.7rem', marginBottom: '0.1rem' }}>e-Puja</h4>
+                            <Video size={20} style={{ color: '#FBBF24', marginBottom: '0.3rem' }} />
+                            <h4 style={{ fontSize: '0.75rem', marginBottom: '0.15rem' }}>e-Puja</h4>
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* CTA Section - Compact */}
+            {/* CTA Section */}
             <section style={{
                 background: 'linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)',
                 color: 'white',
-                padding: '1rem 0.75rem',
+                padding: '1.25rem 1rem',
                 textAlign: 'center'
             }}>
                 <div className="container">
-                    <h2 style={{ marginBottom: '0.35rem', fontSize: '0.95rem' }}>
+                    <h2 style={{ marginBottom: '0.4rem', fontSize: '1.05rem' }}>
                         Ready to Book?
                     </h2>
-                    <p style={{ opacity: 0.9, marginBottom: '0.6rem', fontSize: '0.75rem' }}>
+                    <p style={{ opacity: 0.9, marginBottom: '0.75rem', fontSize: '0.8rem' }}>
                         Join thousands of happy families
                     </p>
                     <button
@@ -339,11 +404,11 @@ const LandingPage = () => {
                         style={{
                             background: 'white',
                             color: '#7C3AED',
-                            padding: '0.5rem 1rem',
+                            padding: '0.6rem 1.25rem',
                             fontWeight: '600',
-                            fontSize: '0.8rem',
+                            fontSize: '0.85rem',
                             border: 'none',
-                            borderRadius: '0.35rem',
+                            borderRadius: '0.4rem',
                             cursor: 'pointer'
                         }}
                     >
