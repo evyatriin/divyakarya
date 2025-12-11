@@ -126,17 +126,22 @@ const PanditsPage = () => {
                                     {ceremony.description?.substring(0, 80)}...
                                 </p>
 
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    {ceremony.basePrice && (
-                                        <span style={{ fontWeight: '600', color: 'var(--primary)', fontSize: '0.95rem' }}>
-                                            ₹{ceremony.basePrice.toLocaleString('en-IN')}
-                                        </span>
-                                    )}
+                                <div style={{ display: 'flex', gap: '0.5rem' }}>
                                     <button
                                         className="btn btn-primary"
-                                        style={{ padding: '0.4rem 0.75rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                                        style={{ flex: 1, padding: '0.4rem 0.5rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem' }}
                                     >
-                                        Book <ArrowRight size={14} />
+                                        Book Now <ArrowRight size={14} />
+                                    </button>
+                                    <button
+                                        className="btn btn-outline"
+                                        style={{ flex: 1, padding: '0.4rem 0.5rem', fontSize: '0.8rem' }}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            navigate(`/ceremony/${ceremony.slug}?muhurat=true`);
+                                        }}
+                                    >
+                                        Find Muhurat
                                     </button>
                                 </div>
                             </div>

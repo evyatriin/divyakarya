@@ -233,17 +233,22 @@ const LandingPage = () => {
                                     {ceremony.description?.substring(0, 60)}...
                                 </p>
 
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    {ceremony.basePrice && (
-                                        <span style={{ fontWeight: '600', color: 'var(--primary)', fontSize: '0.8rem' }}>
-                                            ₹{ceremony.basePrice.toLocaleString('en-IN')}
-                                        </span>
-                                    )}
+                                <div style={{ display: 'flex', gap: '0.35rem' }}>
                                     <button
                                         className="btn btn-primary"
-                                        style={{ padding: '0.3rem 0.6rem', fontSize: '0.7rem' }}
+                                        style={{ flex: 1, padding: '0.3rem 0.5rem', fontSize: '0.65rem' }}
                                     >
                                         Book Now
+                                    </button>
+                                    <button
+                                        className="btn btn-outline"
+                                        style={{ flex: 1, padding: '0.3rem 0.5rem', fontSize: '0.65rem' }}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            navigate(`/ceremony/${ceremony.slug}?muhurat=true`);
+                                        }}
+                                    >
+                                        Find Muhurat
                                     </button>
                                 </div>
                             </div>

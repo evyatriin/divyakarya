@@ -189,25 +189,45 @@ const CeremonyDetails = () => {
                         <h2 style={{ marginBottom: '1.5rem', textAlign: 'center' }}>Book This Ceremony</h2>
 
                         <form onSubmit={handleBookingSubmit}>
-                            <label className="label">Date</label>
+                            <label className="label">Your Name</label>
+                            <div className="input" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem' }}>
+                                <input
+                                    type="text"
+                                    style={{ border: 'none', outline: 'none', width: '100%', fontSize: '1rem' }}
+                                    placeholder="Enter your name"
+                                    value={bookingDetails.name || ''}
+                                    onChange={e => setBookingDetails({ ...bookingDetails, name: e.target.value })}
+                                />
+                            </div>
+
+                            <label className="label">Phone Number</label>
+                            <div className="input" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem' }}>
+                                <input
+                                    type="tel"
+                                    style={{ border: 'none', outline: 'none', width: '100%', fontSize: '1rem' }}
+                                    placeholder="Enter phone number"
+                                    value={bookingDetails.phone || ''}
+                                    onChange={e => setBookingDetails({ ...bookingDetails, phone: e.target.value })}
+                                />
+                            </div>
+
+                            <label className="label">Preferred Date</label>
                             <div className="input" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem' }}>
                                 <Calendar size={18} color="var(--text-light)" />
                                 <input
                                     type="date"
                                     style={{ border: 'none', outline: 'none', width: '100%', fontSize: '1rem' }}
-                                    required
                                     value={bookingDetails.date}
                                     onChange={e => setBookingDetails({ ...bookingDetails, date: e.target.value })}
                                 />
                             </div>
 
-                            <label className="label">Time</label>
+                            <label className="label">Preferred Time</label>
                             <div className="input" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem' }}>
                                 <Clock size={18} color="var(--text-light)" />
                                 <input
                                     type="time"
                                     style={{ border: 'none', outline: 'none', width: '100%', fontSize: '1rem' }}
-                                    required
                                     value={bookingDetails.time}
                                     onChange={e => setBookingDetails({ ...bookingDetails, time: e.target.value })}
                                 />
@@ -219,7 +239,6 @@ const CeremonyDetails = () => {
                                 <textarea
                                     style={{ border: 'none', outline: 'none', width: '100%', fontSize: '1rem', fontFamily: 'inherit', resize: 'none' }}
                                     rows="3"
-                                    required
                                     placeholder="Enter full address"
                                     value={bookingDetails.address}
                                     onChange={e => setBookingDetails({ ...bookingDetails, address: e.target.value })}
@@ -229,15 +248,45 @@ const CeremonyDetails = () => {
                             <button
                                 type="submit"
                                 className="btn btn-primary"
-                                style={{ width: '100%', marginTop: '1rem', fontSize: '1.1rem' }}
+                                style={{ width: '100%', marginTop: '1rem', fontSize: '1rem' }}
                                 disabled={submitting}
                             >
                                 {submitting ? 'Submitting...' : user ? 'Proceed to Book' : 'Login to Book'}
                             </button>
-                            <p style={{ textAlign: 'center', marginTop: '1rem', fontSize: '0.9rem', color: 'var(--text-light)' }}>
-                                You will be redirected to the dashboard to confirm payment.
-                            </p>
                         </form>
+
+                        {/* Consult Astrologer Section */}
+                        <div style={{
+                            marginTop: '1.5rem',
+                            padding: '1rem',
+                            background: 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)',
+                            borderRadius: '0.5rem',
+                            textAlign: 'center'
+                        }}>
+                            <p style={{ fontSize: '0.85rem', color: 'var(--secondary)', marginBottom: '0.75rem' }}>
+                                🌟 Not sure about the best date & time?
+                            </p>
+                            <button
+                                type="button"
+                                className="btn"
+                                style={{
+                                    background: 'linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)',
+                                    color: 'white',
+                                    width: '100%',
+                                    padding: '0.75rem',
+                                    fontSize: '0.9rem',
+                                    border: 'none',
+                                    borderRadius: '0.4rem',
+                                    cursor: 'pointer'
+                                }}
+                                onClick={() => window.open('https://wa.me/917993322387?text=Hi, I need help finding the best Muhurat for ' + encodeURIComponent(details?.title || 'my ceremony'), '_blank')}
+                            >
+                                🔮 Consult Astrologer for Best Muhurat
+                            </button>
+                            <p style={{ fontSize: '0.75rem', color: 'var(--text-light)', marginTop: '0.5rem' }}>
+                                Our expert will suggest auspicious dates
+                            </p>
+                        </div>
                     </div>
                 </div>
 
