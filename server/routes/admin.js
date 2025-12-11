@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { Booking, Pandit, User, PanditAvailability } = require('../models');
+const { Booking, Pandit, User, PanditAvailability, Dosha, EPuja } = require('../models');
 const authenticateToken = require('../middleware/auth');
 const { Op } = require('sequelize');
 
@@ -223,6 +223,30 @@ router.get('/pandit-schedules', authenticateToken, async (req, res) => {
         res.json(schedules);
     } catch (error) {
         console.error('Error fetching pandit schedules:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Admin: Seed Doshas and EPujas data
+router.post('/seed-doshas-epujas', authenticateToken, async (req, res) => {
+    try {
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'Admin only' });
+        }
+
+        const seedDoshasAndEPujas = require('../seed-doshas-epujas');
+        await seedDoshasAndEPujas();
+
+        const doshaCount = await Dosha.count();
+        const epujaCount = await EPuja.count();
+
+        res.json({
+            success: true,
+            message: 'Doshas and EPujas seeded successfully',
+            counts: { doshas: doshaCount, epujas: epujaCount }
+        });
+    } catch (error) {
+        console.error('Error seeding data:', error);
         res.status(500).json({ error: error.message });
     }
 });

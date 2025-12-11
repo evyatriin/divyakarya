@@ -1,197 +1,204 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Star, MapPin, Clock, CheckCircle, Users } from 'lucide-react';
+import { Star, Clock, CheckCircle, Calendar, ArrowRight } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
 const PanditsPage = () => {
     const navigate = useNavigate();
     const { language } = useLanguage();
-    const [pandits, setPandits] = useState([]);
+    const [ceremonies, setCeremonies] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchPandits = async () => {
+        const fetchCeremonies = async () => {
             try {
-                // For public listing, we'll show some sample data
-                // In future, can connect to a public pandits endpoint
-                setPandits([
-                    {
-                        id: 1,
-                        name: 'Pandit Ramesh Sharma',
-                        specialization: 'Vedic Rituals, Grihapravesh',
-                        experience: 15,
-                        rating: 4.9,
-                        totalReviews: 234,
-                        languages: ['Hindi', 'Sanskrit', 'English'],
-                        photo: null,
-                        isVerified: true
-                    },
-                    {
-                        id: 2,
-                        name: 'Pandit Suresh Iyer',
-                        specialization: 'Marriage Ceremonies, Upanayanam',
-                        experience: 20,
-                        rating: 4.8,
-                        totalReviews: 189,
-                        languages: ['Tamil', 'Sanskrit', 'English'],
-                        photo: null,
-                        isVerified: true
-                    },
-                    {
-                        id: 3,
-                        name: 'Pandit Venkat Rao',
-                        specialization: 'Shanti Pujas, Dosha Remedies',
-                        experience: 12,
-                        rating: 4.7,
-                        totalReviews: 156,
-                        languages: ['Telugu', 'Sanskrit', 'Hindi'],
-                        photo: null,
-                        isVerified: true
-                    },
-                    {
-                        id: 4,
-                        name: 'Pandit Krishna Murthy',
-                        specialization: 'Temple Rituals, Homam',
-                        experience: 25,
-                        rating: 4.9,
-                        totalReviews: 312,
-                        languages: ['Kannada', 'Sanskrit', 'English'],
-                        photo: null,
-                        isVerified: true
-                    }
-                ]);
+                const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+                const res = await axios.get(`${apiUrl}/api/ceremonies?lang=${language}`);
+                setCeremonies(res.data);
             } catch (error) {
-                console.error('Error fetching pandits:', error);
+                console.error('Error fetching ceremonies:', error);
             } finally {
                 setLoading(false);
             }
         };
-        fetchPandits();
+        fetchCeremonies();
     }, [language]);
+
+    const handleBookCeremony = (ceremony) => {
+        navigate(`/ceremony/${ceremony.slug}`);
+    };
 
     return (
         <div className="animate-fade-in" style={{ background: 'var(--background)', minHeight: '100vh' }}>
-            {/* Hero Section */}
+            {/* Hero Section - Compact */}
             <section style={{
                 background: 'linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)',
                 color: 'white',
-                padding: '3rem 1rem',
+                padding: '2rem 1rem',
                 textAlign: 'center'
             }}>
                 <div className="container">
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.2)', padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.85rem', marginBottom: '1rem' }}>
-                        <Users size={16} /> Expert Pandits
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.2)', padding: '0.2rem 0.6rem', borderRadius: '1rem', fontSize: '0.8rem', marginBottom: '0.75rem' }}>
+                        <CheckCircle size={14} /> Verified Pandits
                     </div>
-                    <h1 style={{ marginBottom: '1rem' }}>
-                        Our Verified Pandits
+                    <h1 style={{ fontSize: '1.75rem', marginBottom: '0.5rem' }}>
+                        Book a Pandit for Puja
                     </h1>
-                    <p style={{ opacity: 0.9, maxWidth: '600px', margin: '0 auto' }}>
-                        All our pandits are verified, experienced, and trained in authentic vedic traditions. Book with confidence.
+                    <p style={{ opacity: 0.9, maxWidth: '500px', margin: '0 auto', fontSize: '0.9rem' }}>
+                        Select a ceremony below. Our verified pandits will be assigned based on your location and preferred date.
                     </p>
                 </div>
             </section>
 
-            {/* Trust Badges */}
-            <section style={{ background: 'white', padding: '1.5rem 1rem', borderBottom: '1px solid #eee' }}>
-                <div className="container" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '2rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <CheckCircle size={20} style={{ color: '#10B981' }} />
-                        <span style={{ fontSize: '0.9rem' }}>Background Verified</span>
+            {/* Trust Badges - Compact */}
+            <section style={{ background: 'white', padding: '1rem', borderBottom: '1px solid #eee' }}>
+                <div className="container" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '1.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem' }}>
+                        <CheckCircle size={16} style={{ color: '#10B981' }} />
+                        <span>Background Verified</span>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <Star size={20} style={{ color: '#F59E0B' }} />
-                        <span style={{ fontSize: '0.9rem' }}>4.5+ Rating Required</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem' }}>
+                        <Star size={16} style={{ color: '#F59E0B' }} />
+                        <span>4.5+ Rating</span>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <Clock size={20} style={{ color: 'var(--primary)' }} />
-                        <span style={{ fontSize: '0.9rem' }}>On-Time Guarantee</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem' }}>
+                        <Clock size={16} style={{ color: 'var(--primary)' }} />
+                        <span>On-Time Guarantee</span>
                     </div>
                 </div>
             </section>
 
-            {/* Pandits Grid */}
-            <section className="container" style={{ padding: '3rem 1rem' }}>
-                <h2 style={{ textAlign: 'center', marginBottom: '2rem', color: 'var(--secondary)' }}>Meet Our Pandits</h2>
+            {/* Ceremonies Grid */}
+            <section className="container" style={{ padding: '2rem 1rem' }}>
+                <h2 style={{ textAlign: 'center', marginBottom: '0.5rem', color: 'var(--secondary)', fontSize: '1.25rem' }}>
+                    Select a Ceremony
+                </h2>
+                <p style={{ textAlign: 'center', marginBottom: '1.5rem', color: 'var(--text-light)', fontSize: '0.9rem' }}>
+                    Choose the puja or ceremony you need, and we'll assign the best pandit for you
+                </p>
+
                 {loading ? (
-                    <p style={{ textAlign: 'center' }}>Loading pandits...</p>
+                    <p style={{ textAlign: 'center' }}>Loading ceremonies...</p>
                 ) : (
                     <div style={{
                         display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-                        gap: '1.5rem'
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+                        gap: '1rem'
                     }}>
-                        {pandits.map((pandit) => (
-                            <div key={pandit.id} className="card" style={{ padding: '1.5rem', textAlign: 'center' }}>
-                                {/* Avatar */}
-                                <div style={{
-                                    width: '80px',
-                                    height: '80px',
-                                    borderRadius: '50%',
-                                    background: 'linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    margin: '0 auto 1rem',
-                                    color: 'white',
-                                    fontSize: '2rem'
-                                }}>
-                                    {pandit.name.charAt(0)}
-                                </div>
-
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                                    <h3 style={{ margin: 0 }}>{pandit.name}</h3>
-                                    {pandit.isVerified && (
-                                        <CheckCircle size={16} style={{ color: '#10B981' }} title="Verified" />
+                        {ceremonies.map((ceremony) => (
+                            <div
+                                key={ceremony.id}
+                                className="card"
+                                style={{
+                                    padding: '1.25rem',
+                                    cursor: 'pointer',
+                                    transition: 'transform 0.2s, box-shadow 0.2s'
+                                }}
+                                onClick={() => handleBookCeremony(ceremony)}
+                                onMouseEnter={e => {
+                                    e.currentTarget.style.transform = 'translateY(-4px)';
+                                    e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.1)';
+                                }}
+                                onMouseLeave={e => {
+                                    e.currentTarget.style.transform = 'translateY(0)';
+                                    e.currentTarget.style.boxShadow = '';
+                                }}
+                            >
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                                    {ceremony.image ? (
+                                        <img
+                                            src={ceremony.image}
+                                            alt={ceremony.title}
+                                            style={{ width: '48px', height: '48px', borderRadius: '0.5rem', objectFit: 'cover' }}
+                                        />
+                                    ) : (
+                                        <div style={{
+                                            fontSize: '2rem',
+                                            width: '48px',
+                                            height: '48px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center'
+                                        }}>{ceremony.icon}</div>
                                     )}
+                                    <div>
+                                        <h3 style={{ margin: 0, fontSize: '1rem' }}>{ceremony.title}</h3>
+                                        {ceremony.duration && (
+                                            <span style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}>
+                                                <Clock size={12} style={{ marginRight: '0.25rem' }} />
+                                                {ceremony.duration}
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
 
-                                <p style={{ color: 'var(--primary)', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
-                                    {pandit.specialization}
+                                <p style={{ color: 'var(--text-light)', fontSize: '0.85rem', marginBottom: '1rem', lineHeight: '1.4' }}>
+                                    {ceremony.description?.substring(0, 80)}...
                                 </p>
 
-                                <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: '1rem', fontSize: '0.85rem', color: 'var(--text-light)' }}>
-                                    <span><Clock size={14} style={{ marginRight: '0.25rem' }} />{pandit.experience} yrs</span>
-                                    <span style={{ display: 'flex', alignItems: 'center' }}>
-                                        <Star size={14} style={{ marginRight: '0.25rem', color: '#F59E0B' }} />
-                                        {pandit.rating} ({pandit.totalReviews})
-                                    </span>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    {ceremony.basePrice && (
+                                        <span style={{ fontWeight: '600', color: 'var(--primary)', fontSize: '0.95rem' }}>
+                                            ₹{ceremony.basePrice.toLocaleString('en-IN')} onwards
+                                        </span>
+                                    )}
+                                    <button
+                                        className="btn btn-primary"
+                                        style={{ padding: '0.4rem 0.75rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                                    >
+                                        Book <ArrowRight size={14} />
+                                    </button>
                                 </div>
-
-                                <div style={{ marginBottom: '1rem' }}>
-                                    {pandit.languages.map((lang, i) => (
-                                        <span key={i} style={{
-                                            display: 'inline-block',
-                                            background: '#F3F4F6',
-                                            padding: '0.2rem 0.5rem',
-                                            borderRadius: '0.25rem',
-                                            fontSize: '0.75rem',
-                                            margin: '0.15rem'
-                                        }}>{lang}</span>
-                                    ))}
-                                </div>
-
-                                <button
-                                    className="btn btn-primary"
-                                    style={{ width: '100%' }}
-                                    onClick={() => navigate('/dashboard')}
-                                >
-                                    Book Pandit
-                                </button>
                             </div>
                         ))}
                     </div>
                 )}
             </section>
 
-            {/* CTA Section */}
-            <section style={{ background: 'var(--secondary)', color: 'white', padding: '3rem 1rem', textAlign: 'center' }}>
+            {/* How It Works - Compact */}
+            <section style={{ background: '#F9FAFB', padding: '2rem 1rem' }}>
                 <div className="container">
-                    <h2 style={{ marginBottom: '1rem' }}>Want to Become a Pandit Partner?</h2>
-                    <p style={{ opacity: 0.8, marginBottom: '1.5rem' }}>
-                        Join our network of verified pandits and connect with devotees across the country.
+                    <h3 style={{ textAlign: 'center', marginBottom: '1.5rem', color: 'var(--secondary)', fontSize: '1.1rem' }}>
+                        How Pandit Booking Works
+                    </h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1.5rem' }}>
+                        {[
+                            { step: '1', title: 'Select Ceremony', desc: 'Choose the puja you need' },
+                            { step: '2', title: 'Pick Date & Time', desc: 'Select your preferred slot' },
+                            { step: '3', title: 'Pandit Assigned', desc: 'We assign the best match' },
+                            { step: '4', title: 'Puja at Home', desc: 'Pandit arrives on time' }
+                        ].map((item, idx) => (
+                            <div key={idx} style={{ textAlign: 'center' }}>
+                                <div style={{
+                                    width: '36px',
+                                    height: '36px',
+                                    background: 'var(--primary)',
+                                    borderRadius: '50%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    margin: '0 auto 0.5rem',
+                                    color: 'white',
+                                    fontWeight: '600',
+                                    fontSize: '0.9rem'
+                                }}>{item.step}</div>
+                                <h4 style={{ margin: '0 0 0.25rem', fontSize: '0.9rem' }}>{item.title}</h4>
+                                <p style={{ fontSize: '0.8rem', color: 'var(--text-light)', margin: 0 }}>{item.desc}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* CTA Section - Compact */}
+            <section style={{ background: 'var(--secondary)', color: 'white', padding: '2rem 1rem', textAlign: 'center' }}>
+                <div className="container">
+                    <h2 style={{ marginBottom: '0.5rem', fontSize: '1.25rem' }}>Want to Become a Pandit Partner?</h2>
+                    <p style={{ opacity: 0.8, marginBottom: '1rem', fontSize: '0.9rem' }}>
+                        Join our network of verified pandits and connect with devotees.
                     </p>
-                    <button className="btn btn-primary" onClick={() => navigate('/register')}>
+                    <button className="btn btn-primary" onClick={() => navigate('/register')} style={{ padding: '0.6rem 1.5rem' }}>
                         Register as Pandit
                     </button>
                 </div>
