@@ -132,20 +132,9 @@ const EPujasPage = () => {
                 )}
             </section>
 
-            {/* CTA Section */}
-            <section style={{ background: 'var(--secondary)', color: 'white', padding: '3rem 1rem', textAlign: 'center' }}>
-                <div className="container">
-                    <h2 style={{ marginBottom: '1rem' }}>Can't Find What You're Looking For?</h2>
-                    <p style={{ opacity: 0.8, marginBottom: '1.5rem' }}>
-                        Contact us for custom puja requirements. We can arrange any vedic ceremony virtually.
-                    </p>
-                    <button className="btn btn-primary" onClick={() => navigate('/contact')}>
-                        Contact Us
-                    </button>
-                </div>
-            </section>
         </div>
     );
 };
 
 export default EPujasPage;
+

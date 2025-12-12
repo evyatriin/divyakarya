@@ -62,6 +62,14 @@ const AdminDashboard = () => {
     const [confirmDeleteDosha, setConfirmDeleteDosha] = useState(null);
     const [confirmDeleteEPuja, setConfirmDeleteEPuja] = useState(null);
 
+    // Site Settings
+    const [siteSettings, setSiteSettings] = useState({
+        whatsappNumber: '',
+        pujaLocations: []
+    });
+    const [newLocation, setNewLocation] = useState('');
+    const [savingSettings, setSavingSettings] = useState(false);
+
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
     useEffect(() => { fetchData(); }, []);
@@ -83,6 +91,17 @@ const AdminDashboard = () => {
             setDoshas(doshasRes.data || []);
             setEpujas(epujasRes.data || []);
             setLoading(false);
+
+            // Fetch settings
+            try {
+                const settingsRes = await axios.get(`${apiUrl}/api/settings`);
+                setSiteSettings({
+                    whatsappNumber: settingsRes.data.whatsappNumber || '',
+                    pujaLocations: settingsRes.data.pujaLocations || []
+                });
+            } catch (e) {
+                console.log('Settings not found, using defaults');
+            }
         } catch (error) {
             console.error('Error:', error);
             setLoading(false);
@@ -433,11 +452,11 @@ const AdminDashboard = () => {
 
             {/* Tabs */}
             <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-                {['bookings', 'pandits', 'ceremonies', 'catalog'].map(tab => (
+                {['bookings', 'pandits', 'ceremonies', 'catalog', 'settings'].map(tab => (
                     <button key={tab} onClick={() => setActiveTab(tab)}
                         className={activeTab === tab ? 'btn btn-primary' : 'btn btn-outline'}
                         style={{ textTransform: 'capitalize' }}>
-                        {tab === 'ceremonies' ? 'Pujas' : tab === 'pandits' ? 'Pandits' : tab === 'catalog' ? 'Catalog' : 'Bookings'}
+                        {tab === 'ceremonies' ? 'Pujas' : tab === 'pandits' ? 'Pandits' : tab === 'catalog' ? 'Catalog' : tab === 'settings' ? 'Settings' : 'Bookings'}
                     </button>
                 ))}
             </div>
@@ -892,6 +911,111 @@ const AdminDashboard = () => {
                             </div>
                         ))}
                     </div>
+                </div>
+            )}
+
+            {/* SETTINGS TAB */}
+            {activeTab === 'settings' && (
+                <div className="card">
+                    <h2 style={{ marginBottom: '1.5rem' }}>Site Settings</h2>
+
+                    {/* WhatsApp Number */}
+                    <div style={{ marginBottom: '2rem' }}>
+                        <h4 style={{ marginBottom: '0.75rem' }}>WhatsApp Support Number</h4>
+                        <p style={{ fontSize: '0.85rem', color: 'var(--text-light)', marginBottom: '0.75rem' }}>
+                            This number will be used for the WhatsApp button across the site.
+                        </p>
+                        <div style={{ display: 'flex', gap: '0.5rem', maxWidth: '400px' }}>
+                            <input
+                                type="text"
+                                value={siteSettings.whatsappNumber}
+                                onChange={e => setSiteSettings({ ...siteSettings, whatsappNumber: e.target.value })}
+                                placeholder="e.g., 919876543210"
+                                style={{ flex: 1, padding: '0.5rem', border: '1px solid #E5E7EB', borderRadius: '6px' }}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Puja Locations */}
+                    <div style={{ marginBottom: '2rem' }}>
+                        <h4 style={{ marginBottom: '0.75rem' }}>Puja Locations</h4>
+                        <p style={{ fontSize: '0.85rem', color: 'var(--text-light)', marginBottom: '0.75rem' }}>
+                            Manage available locations where pujas can be performed.
+                        </p>
+                        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', maxWidth: '400px' }}>
+                            <input
+                                type="text"
+                                value={newLocation}
+                                onChange={e => setNewLocation(e.target.value)}
+                                placeholder="Add new location"
+                                style={{ flex: 1, padding: '0.5rem', border: '1px solid #E5E7EB', borderRadius: '6px' }}
+                                onKeyDown={e => {
+                                    if (e.key === 'Enter' && newLocation.trim()) {
+                                        setSiteSettings({ ...siteSettings, pujaLocations: [...siteSettings.pujaLocations, newLocation.trim()] });
+                                        setNewLocation('');
+                                    }
+                                }}
+                            />
+                            <button
+                                className="btn btn-outline"
+                                onClick={() => {
+                                    if (newLocation.trim()) {
+                                        setSiteSettings({ ...siteSettings, pujaLocations: [...siteSettings.pujaLocations, newLocation.trim()] });
+                                        setNewLocation('');
+                                    }
+                                }}
+                            >
+                                <Plus size={16} />
+                            </button>
+                        </div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                            {siteSettings.pujaLocations.map((loc, i) => (
+                                <span key={i} style={{
+                                    background: '#E8F5E9',
+                                    color: '#2E7D32',
+                                    padding: '0.4rem 0.8rem',
+                                    borderRadius: '20px',
+                                    fontSize: '0.85rem',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem'
+                                }}>
+                                    {loc}
+                                    <button
+                                        onClick={() => setSiteSettings({ ...siteSettings, pujaLocations: siteSettings.pujaLocations.filter((_, idx) => idx !== i) })}
+                                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#991B1B', padding: 0 }}
+                                    >×</button>
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Save Button */}
+                    <button
+                        className="btn btn-primary"
+                        disabled={savingSettings}
+                        onClick={async () => {
+                            setSavingSettings(true);
+                            try {
+                                const token = localStorage.getItem('token');
+                                await axios.post(`${apiUrl}/api/settings/bulk`, {
+                                    settings: [
+                                        { key: 'whatsappNumber', value: siteSettings.whatsappNumber, type: 'string' },
+                                        { key: 'pujaLocations', value: siteSettings.pujaLocations, type: 'json' }
+                                    ]
+                                }, { headers: { Authorization: `Bearer ${token}` } });
+                                setSuccessMessage('Settings saved successfully!');
+                                setTimeout(() => setSuccessMessage(''), 3000);
+                            } catch (err) {
+                                setError(err.response?.data?.error || 'Error saving settings');
+                                setTimeout(() => setError(''), 5000);
+                            } finally {
+                                setSavingSettings(false);
+                            }
+                        }}
+                    >
+                        {savingSettings ? 'Saving...' : 'Save Settings'}
+                    </button>
                 </div>
             )}
         </div>

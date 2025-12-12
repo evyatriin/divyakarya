@@ -117,7 +117,8 @@ const LandingPage = () => {
                         fontSize: 'clamp(1.5rem, 4vw, 2rem)',
                         fontWeight: '700',
                         marginBottom: '0.4rem',
-                        lineHeight: '1.2'
+                        lineHeight: '1.2',
+                        color: 'white'
                     }}>
                         Book a Pandit for Your <span style={{ color: '#FBBF24' }}>Ceremony</span>
                     </h1>

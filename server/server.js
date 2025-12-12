@@ -55,6 +55,7 @@ app.use('/api/availability', require('./routes/availability'));
 app.use('/api/doshas', require('./routes/doshas'));
 app.use('/api/epujas', require('./routes/epujas'));
 app.use('/api/dosha-bookings', require('./routes/doshaBookings'));
+app.use('/api/settings', require('./routes/settings'));
 
 // Health check with DB status
 app.get('/', async (req, res) => {

@@ -8,6 +8,7 @@ const Review = require('./Review');
 const Dosha = require('./Dosha');
 const EPuja = require('./EPuja');
 const DoshaBooking = require('./DoshaBooking');
+const SiteSettings = require('./SiteSettings');
 
 // Associations
 User.hasMany(Booking);
@@ -46,6 +47,6 @@ module.exports = {
     Review,
     Dosha,
     EPuja,
-    DoshaBooking
+    DoshaBooking,
+    SiteSettings
 };
-

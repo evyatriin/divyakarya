@@ -1,10 +1,26 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 import { MessageCircle } from 'lucide-react';
+import axios from 'axios';
 
 const WhatsAppButton = () => {
-    // TODO: Replace with actual support number
-    const phoneNumber = '919876543210';
-    const message = 'Hello! I need assistance with Pandit calling.';
+    const [phoneNumber, setPhoneNumber] = useState('919876543210');
+    const message = 'Hello! I need assistance with Pandit booking.';
+
+    useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+                const res = await axios.get(`${apiUrl}/api/settings`);
+                if (res.data.whatsappNumber) {
+                    // Remove any non-digit characters
+                    setPhoneNumber(res.data.whatsappNumber.replace(/\D/g, ''));
+                }
+            } catch (error) {
+                console.log('Using default WhatsApp number');
+            }
+        };
+        fetchSettings();
+    }, []);
 
     const handleClick = () => {
         const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;

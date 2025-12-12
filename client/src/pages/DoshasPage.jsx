@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Calendar, MapPin, Clock, ArrowRight } from 'lucide-react';
+import { Calendar, MapPin, Clock, ArrowRight, X } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
 const DoshasPage = () => {
@@ -9,6 +9,7 @@ const DoshasPage = () => {
     const { language } = useLanguage();
     const [doshas, setDoshas] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [showLocationsModal, setShowLocationsModal] = useState(null);
 
     useEffect(() => {
         const fetchDoshas = async () => {
@@ -107,13 +108,18 @@ const DoshasPage = () => {
                                             }}>{loc}</span>
                                         ))}
                                         {dosha.locationOptions.length > 2 && (
-                                            <span style={{
-                                                background: '#F3F4F6',
-                                                color: 'var(--text-light)',
-                                                padding: '0.2rem 0.6rem',
-                                                borderRadius: '12px',
-                                                fontSize: '0.75rem'
-                                            }}>+{dosha.locationOptions.length - 2} more</span>
+                                            <span
+                                                onClick={() => setShowLocationsModal(dosha)}
+                                                style={{
+                                                    background: '#F3F4F6',
+                                                    color: 'var(--primary)',
+                                                    padding: '0.2rem 0.6rem',
+                                                    borderRadius: '12px',
+                                                    fontSize: '0.75rem',
+                                                    cursor: 'pointer',
+                                                    fontWeight: '500'
+                                                }}
+                                            >+{dosha.locationOptions.length - 2} more</span>
                                         )}
                                     </div>
                                 )}
@@ -140,18 +146,72 @@ const DoshasPage = () => {
                 )}
             </section>
 
-            {/* CTA Section */}
-            <section style={{ background: 'var(--secondary)', color: 'white', padding: '3rem 1rem', textAlign: 'center' }}>
-                <div className="container">
-                    <h2 style={{ marginBottom: '1rem' }}>Not Sure Which Dosha You Have?</h2>
-                    <p style={{ opacity: 0.8, marginBottom: '1.5rem' }}>
-                        Get a free consultation with our expert astrologers to identify doshas in your horoscope.
-                    </p>
-                    <button className="btn btn-primary" onClick={() => navigate('/contact')}>
-                        Get Free Consultation
-                    </button>
+            {/* Locations Modal */}
+            {showLocationsModal && (
+                <div
+                    onClick={() => setShowLocationsModal(null)}
+                    style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        background: 'rgba(0,0,0,0.5)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 1000,
+                        padding: '1rem'
+                    }}
+                >
+                    <div
+                        onClick={e => e.stopPropagation()}
+                        style={{
+                            background: 'white',
+                            borderRadius: '12px',
+                            padding: '1.5rem',
+                            maxWidth: '400px',
+                            width: '100%',
+                            maxHeight: '80vh',
+                            overflow: 'auto'
+                        }}
+                    >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                            <h3 style={{ margin: 0 }}>Available Locations</h3>
+                            <button
+                                onClick={() => setShowLocationsModal(null)}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem' }}
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <p style={{ fontSize: '0.9rem', color: 'var(--text-light)', marginBottom: '1rem' }}>
+                            {showLocationsModal.name} can be performed at these locations:
+                        </p>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                            {showLocationsModal.locationOptions.map((loc, i) => (
+                                <span key={i} style={{
+                                    background: '#E8F5E9',
+                                    color: '#2E7D32',
+                                    padding: '0.4rem 0.8rem',
+                                    borderRadius: '20px',
+                                    fontSize: '0.85rem'
+                                }}>{loc}</span>
+                            ))}
+                        </div>
+                        <button
+                            className="btn btn-primary"
+                            style={{ width: '100%', marginTop: '1.5rem' }}
+                            onClick={() => {
+                                setShowLocationsModal(null);
+                                navigate(`/doshas/${showLocationsModal.slug}`);
+                            }}
+                        >
+                            View {showLocationsModal.name}
+                        </button>
+                    </div>
                 </div>
-            </section>
+            )}
         </div>
     );
 };
