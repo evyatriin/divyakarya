@@ -14,6 +14,7 @@ const AdminDashboard = () => {
     });
     const [loading, setLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState('all');
+    const [panditFilter, setPanditFilter] = useState('all');
     const [selectedBooking, setSelectedBooking] = useState(null);
 
     // Ceremony form
@@ -27,7 +28,8 @@ const AdminDashboard = () => {
     const [showPanditModal, setShowPanditModal] = useState(false);
     const [editingPandit, setEditingPandit] = useState(null);
     const [panditForm, setPanditForm] = useState({
-        name: '', email: '', password: '', phone: '', specialization: '', experience: 0
+        name: '', email: '', password: '', phone: '', specialization: '', experience: 0,
+        serviceTypes: ['ceremonies']
     });
     const [viewingPandit, setViewingPandit] = useState(null);
 
@@ -192,11 +194,12 @@ const AdminDashboard = () => {
             setEditingPandit(pandit);
             setPanditForm({
                 name: pandit.name, email: pandit.email, password: '', phone: pandit.phone,
-                specialization: pandit.specialization || '', experience: pandit.experience || 0
+                specialization: pandit.specialization || '', experience: pandit.experience || 0,
+                serviceTypes: pandit.serviceTypes || ['ceremonies']
             });
         } else {
             setEditingPandit(null);
-            setPanditForm({ name: '', email: '', password: '', phone: '', specialization: '', experience: 0 });
+            setPanditForm({ name: '', email: '', password: '', phone: '', specialization: '', experience: 0, serviceTypes: ['ceremonies'] });
         }
         setShowPanditModal(true);
     };
@@ -537,11 +540,24 @@ const AdminDashboard = () => {
             {/* PANDITS TAB */}
             {activeTab === 'pandits' && (
                 <div className="card">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.75rem' }}>
                         <h3>Manage Pandits</h3>
-                        <button onClick={() => openPanditModal()} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <Plus size={18} /> Add Pandit
-                        </button>
+                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                            <select
+                                className="input"
+                                style={{ marginBottom: 0, minWidth: '140px' }}
+                                value={panditFilter || 'all'}
+                                onChange={e => setPanditFilter(e.target.value)}
+                            >
+                                <option value="all">All Services</option>
+                                <option value="ceremonies">Ceremonies</option>
+                                <option value="doshas">Doshas</option>
+                                <option value="epujas">e-Pujas</option>
+                            </select>
+                            <button onClick={() => openPanditModal()} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <Plus size={18} /> Add Pandit
+                            </button>
+                        </div>
                     </div>
                     <div style={{ overflowX: 'auto' }}>
                         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -549,53 +565,71 @@ const AdminDashboard = () => {
                                 <tr style={{ borderBottom: '2px solid #E5E7EB', textAlign: 'left' }}>
                                     <th style={{ padding: '0.75rem' }}>Name</th>
                                     <th style={{ padding: '0.75rem' }}>Contact</th>
-                                    <th style={{ padding: '0.75rem' }}>Specialization</th>
+                                    <th style={{ padding: '0.75rem' }}>Services</th>
                                     <th style={{ padding: '0.75rem' }}>Status</th>
                                     <th style={{ padding: '0.75rem' }}>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {pandits.map(p => (
-                                    <tr key={p.id} style={{ borderBottom: '1px solid #E5E7EB' }}>
-                                        <td style={{ padding: '0.75rem' }}>
-                                            <div style={{ fontWeight: '500' }}>{p.name}</div>
-                                            <div style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>{p.experience} yrs exp</div>
-                                        </td>
-                                        <td style={{ padding: '0.75rem' }}>
-                                            <div style={{ fontSize: '0.9rem' }}>{p.phone}</div>
-                                            <div style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>{p.email}</div>
-                                        </td>
-                                        <td style={{ padding: '0.75rem' }}>{p.specialization || '-'}</td>
-                                        <td style={{ padding: '0.75rem' }}>
-                                            <span style={{
-                                                padding: '0.25rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem',
-                                                background: p.isVerified ? '#D1FAE5' : '#FEE2E2',
-                                                color: p.isVerified ? '#065F46' : '#991B1B'
-                                            }}>
-                                                {p.isVerified ? 'Verified' : 'Unverified'}
-                                            </span>
-                                            {p.isOnline && <span style={{ marginLeft: '0.5rem', color: '#10B981' }}>● Online</span>}
-                                        </td>
-                                        <td style={{ padding: '0.75rem' }}>
-                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                                <button onClick={() => viewPanditDetails(p.id)} className="btn btn-outline" style={{ padding: '0.3rem 0.5rem' }} title="View Details">
-                                                    <Eye size={16} />
-                                                </button>
-                                                <button onClick={() => togglePanditVerification(p.id)} className="btn"
-                                                    style={{ padding: '0.3rem 0.5rem', background: p.isVerified ? '#FEE2E2' : '#D1FAE5', color: p.isVerified ? '#991B1B' : '#065F46' }}
-                                                    title={p.isVerified ? 'Disable' : 'Enable'}>
-                                                    <CheckCircle size={16} />
-                                                </button>
-                                                <button onClick={() => openPanditModal(p)} className="btn btn-outline" style={{ padding: '0.3rem 0.5rem' }} title="Edit">
-                                                    <Edit size={16} />
-                                                </button>
-                                                <button onClick={() => setConfirmDeletePandit(p.id)} className="btn" style={{ padding: '0.3rem 0.5rem', background: '#FEE2E2', color: '#991B1B' }} title="Delete">
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
+                                {pandits
+                                    .filter(p => panditFilter === 'all' || (p.serviceTypes || ['ceremonies']).includes(panditFilter))
+                                    .map(p => (
+                                        <tr key={p.id} style={{ borderBottom: '1px solid #E5E7EB' }}>
+                                            <td style={{ padding: '0.75rem' }}>
+                                                <div style={{ fontWeight: '500' }}>{p.name}</div>
+                                                <div style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>{p.experience} yrs • {p.specialization || '-'}</div>
+                                            </td>
+                                            <td style={{ padding: '0.75rem' }}>
+                                                <div style={{ fontSize: '0.9rem' }}>{p.phone}</div>
+                                                <div style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>{p.email}</div>
+                                            </td>
+                                            <td style={{ padding: '0.75rem' }}>
+                                                <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+                                                    {(p.serviceTypes || ['ceremonies']).map(type => (
+                                                        <span key={type} style={{
+                                                            background: type === 'ceremonies' ? '#DBEAFE' : type === 'doshas' ? '#FEE2E2' : '#FEF3C7',
+                                                            color: type === 'ceremonies' ? '#1E40AF' : type === 'doshas' ? '#991B1B' : '#92400E',
+                                                            padding: '0.15rem 0.5rem',
+                                                            borderRadius: '12px',
+                                                            fontSize: '0.7rem',
+                                                            fontWeight: '500',
+                                                            textTransform: 'capitalize'
+                                                        }}>
+                                                            {type === 'epujas' ? 'e-Pujas' : type}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </td>
+                                            <td style={{ padding: '0.75rem' }}>
+                                                <span style={{
+                                                    padding: '0.25rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem',
+                                                    background: p.isVerified ? '#D1FAE5' : '#FEE2E2',
+                                                    color: p.isVerified ? '#065F46' : '#991B1B'
+                                                }}>
+                                                    {p.isVerified ? 'Verified' : 'Unverified'}
+                                                </span>
+                                                {p.isOnline && <span style={{ marginLeft: '0.5rem', color: '#10B981' }}>● Online</span>}
+                                            </td>
+                                            <td style={{ padding: '0.75rem' }}>
+                                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                    <button onClick={() => viewPanditDetails(p.id)} className="btn btn-outline" style={{ padding: '0.3rem 0.5rem' }} title="View Details">
+                                                        <Eye size={16} />
+                                                    </button>
+                                                    <button onClick={() => togglePanditVerification(p.id)} className="btn"
+                                                        style={{ padding: '0.3rem 0.5rem', background: p.isVerified ? '#FEE2E2' : '#D1FAE5', color: p.isVerified ? '#991B1B' : '#065F46' }}
+                                                        title={p.isVerified ? 'Disable' : 'Enable'}>
+                                                        <CheckCircle size={16} />
+                                                    </button>
+                                                    <button onClick={() => openPanditModal(p)} className="btn btn-outline" style={{ padding: '0.3rem 0.5rem' }} title="Edit">
+                                                        <Edit size={16} />
+                                                    </button>
+                                                    <button onClick={() => setConfirmDeletePandit(p.id)} className="btn" style={{ padding: '0.3rem 0.5rem', background: '#FEE2E2', color: '#991B1B' }} title="Delete">
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
                             </tbody>
                         </table>
                     </div>
@@ -671,7 +705,7 @@ const AdminDashboard = () => {
             {/* PANDIT MODAL */}
             {showPanditModal && (
                 <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-                    <div className="card" style={{ maxWidth: '500px', margin: '1rem' }}>
+                    <div className="card" style={{ maxWidth: '500px', margin: '1rem', maxHeight: '90vh', overflowY: 'auto' }}>
                         <h3 style={{ marginBottom: '1rem' }}>{editingPandit ? 'Edit Pandit' : 'Add Pandit'}</h3>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                             <div><label className="label">Name *</label><input className="input" value={panditForm.name} onChange={e => setPanditForm({ ...panditForm, name: e.target.value })} /></div>
@@ -687,7 +721,31 @@ const AdminDashboard = () => {
                             <div><label className="label">Specialization</label><input className="input" value={panditForm.specialization} onChange={e => setPanditForm({ ...panditForm, specialization: e.target.value })} /></div>
                             <div><label className="label">Experience (yrs)</label><input className="input" type="number" value={panditForm.experience} onChange={e => setPanditForm({ ...panditForm, experience: e.target.value })} /></div>
                         </div>
-                        <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+
+                        {/* Service Types */}
+                        <label className="label" style={{ marginTop: '1rem' }}>Service Types</label>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginBottom: '0.5rem' }}>
+                            {['ceremonies', 'doshas', 'epujas'].map(type => (
+                                <label key={type} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                                    <input
+                                        type="checkbox"
+                                        checked={panditForm.serviceTypes?.includes(type) || false}
+                                        onChange={e => {
+                                            const current = panditForm.serviceTypes || [];
+                                            if (e.target.checked) {
+                                                setPanditForm({ ...panditForm, serviceTypes: [...current, type] });
+                                            } else {
+                                                setPanditForm({ ...panditForm, serviceTypes: current.filter(t => t !== type) });
+                                            }
+                                        }}
+                                    />
+                                    <span style={{ textTransform: 'capitalize' }}>{type === 'epujas' ? 'e-Pujas' : type}</span>
+                                </label>
+                            ))}
+                        </div>
+                        <p style={{ fontSize: '0.8rem', color: 'var(--text-light)', margin: '0 0 1rem 0' }}>Select which types of services this pandit can perform</p>
+
+                        <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
                             <button onClick={() => setShowPanditModal(false)} className="btn btn-outline" style={{ flex: 1 }}>Cancel</button>
                             <button onClick={savePandit} className="btn btn-primary" style={{ flex: 1 }}>Save</button>
                         </div>

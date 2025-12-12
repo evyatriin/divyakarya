@@ -35,6 +35,12 @@ const Pandit = sequelize.define('Pandit', {
         type: DataTypes.BOOLEAN,
         defaultValue: false
     },
+    // Service types this pandit can perform
+    serviceTypes: {
+        type: DataTypes.JSON,
+        defaultValue: ['ceremonies'],
+        comment: 'Array of service types: ceremonies, doshas, epujas'
+    },
     // New fields
     photo: {
         type: DataTypes.STRING,
