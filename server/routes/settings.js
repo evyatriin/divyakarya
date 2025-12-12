@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { SiteSettings } = require('../models');
-const { authenticateToken } = require('../middleware/auth');
+const authenticateToken = require('../middleware/auth');
 
 // Get all settings (public - for frontend to use)
 router.get('/', async (req, res) => {
