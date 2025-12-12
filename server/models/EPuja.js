@@ -41,6 +41,12 @@ const EPuja = sequelize.define('EPuja', {
         allowNull: false,
         defaultValue: 1100
     },
+    participantLimit: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        defaultValue: null,
+        comment: 'Maximum number of participants allowed'
+    },
     priceType: {
         type: DataTypes.ENUM('fixed', 'starting', 'monthly'),
         defaultValue: 'fixed'

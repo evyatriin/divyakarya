@@ -41,6 +41,12 @@ const Dosha = sequelize.define('Dosha', {
         allowNull: false,
         defaultValue: 2100
     },
+    participantLimit: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        defaultValue: null,
+        comment: 'Maximum number of participants allowed'
+    },
     translations: {
         type: DataTypes.JSON, // { te: { name, description }, ta: {...} }
         defaultValue: {}

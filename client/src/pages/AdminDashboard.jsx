@@ -37,10 +37,30 @@ const AdminDashboard = () => {
     const [confirmDeleteCeremony, setConfirmDeleteCeremony] = useState(null);
     const [confirmDeletePandit, setConfirmDeletePandit] = useState(null);
 
-    // Doshas and ePujas for pricing management
+    // Doshas and ePujas for Catalog management
     const [doshas, setDoshas] = useState([]);
     const [epujas, setEpujas] = useState([]);
-    const [editingPrice, setEditingPrice] = useState({ type: null, id: null, price: 0 });
+    // Removed editingPrice state as we are moving to full edit modals
+
+    // Dosha Form
+    const [showDoshaModal, setShowDoshaModal] = useState(false);
+    const [editingDosha, setEditingDosha] = useState(null);
+    const [doshaForm, setDoshaForm] = useState({
+        name: '', slug: '', description: '', icon: '🔴', image: '', price: 2100,
+        duration: '2-3 hours', remedies: '', details: '', participantLimit: ''
+    });
+
+    // EPuja Form
+    const [showEPujaModal, setShowEPujaModal] = useState(false);
+    const [editingEPuja, setEditingEPuja] = useState(null);
+    const [epujaForm, setEpujaForm] = useState({
+        name: '', slug: '', description: '', icon: '🛕', image: '', price: 1100,
+        priceType: 'fixed', tag: '', details: '', features: '', participantLimit: ''
+    });
+
+    // Delete confirm states
+    const [confirmDeleteDosha, setConfirmDeleteDosha] = useState(null);
+    const [confirmDeleteEPuja, setConfirmDeleteEPuja] = useState(null);
 
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -220,21 +240,120 @@ const AdminDashboard = () => {
         }
     };
 
-    // Update Dosha or ePuja price
-    const updatePrice = async (type, id, newPrice) => {
+    // Dosha CRUD
+    const openDoshaModal = (dosha = null) => {
+        if (dosha) {
+            setEditingDosha(dosha);
+            setDoshaForm({
+                name: dosha.name, slug: dosha.slug, description: dosha.description || '',
+                icon: dosha.icon || '🔴', image: dosha.image || '', price: dosha.price || 2100,
+                duration: dosha.duration || '2-3 hours',
+                remedies: (dosha.remedies || []).join(', '),
+                details: dosha.details || '',
+                participantLimit: dosha.participantLimit || ''
+            });
+        } else {
+            setEditingDosha(null);
+            setDoshaForm({
+                name: '', slug: '', description: '', icon: '🔴', image: '', price: 2100,
+                duration: '2-3 hours', remedies: '', details: '', participantLimit: ''
+            });
+        }
+        setShowDoshaModal(true);
+    };
+
+    const saveDosha = async () => {
         try {
-            const endpoint = type === 'dosha' ? 'doshas' : 'epujas';
-            await axios.put(`${apiUrl}/api/${endpoint}/${id}`, { price: parseFloat(newPrice) });
-            if (type === 'dosha') {
-                setDoshas(doshas.map(d => d.id === id ? { ...d, price: parseFloat(newPrice) } : d));
+            const data = {
+                ...doshaForm,
+                remedies: doshaForm.remedies.split(',').map(s => s.trim()).filter(s => s),
+                price: parseFloat(doshaForm.price) || 0,
+                participantLimit: doshaForm.participantLimit ? parseInt(doshaForm.participantLimit) : null
+            };
+            if (editingDosha) {
+                await axios.put(`${apiUrl}/api/doshas/${editingDosha.id}`, data);
             } else {
-                setEpujas(epujas.map(e => e.id === id ? { ...e, price: parseFloat(newPrice) } : e));
+                await axios.post(`${apiUrl}/api/doshas`, data);
             }
-            setEditingPrice({ type: null, id: null, price: 0 });
-            setSuccessMessage('Price updated successfully!');
+            setShowDoshaModal(false);
+            fetchData();
+            setSuccessMessage('Dosha saved successfully!');
             setTimeout(() => setSuccessMessage(''), 3000);
         } catch (err) {
-            setError(err.response?.data?.error || 'Error updating price');
+            setError(err.response?.data?.error || 'Error saving dosha');
+            setTimeout(() => setError(''), 5000);
+        }
+    };
+
+    const deleteDosha = async (id) => {
+        try {
+            await axios.delete(`${apiUrl}/api/doshas/${id}`);
+            fetchData();
+            setConfirmDeleteDosha(null);
+            setSuccessMessage('Dosha deleted!');
+            setTimeout(() => setSuccessMessage(''), 3000);
+        } catch (err) {
+            setConfirmDeleteDosha(null);
+            setError(err.response?.data?.error || 'Error deleting dosha');
+            setTimeout(() => setError(''), 5000);
+        }
+    };
+
+    // EPuja CRUD
+    const openEPujaModal = (epuja = null) => {
+        if (epuja) {
+            setEditingEPuja(epuja);
+            setEpujaForm({
+                name: epuja.name, slug: epuja.slug, description: epuja.description || '',
+                icon: epuja.icon || '🛕', image: epuja.image || '', price: epuja.price || 1100,
+                priceType: epuja.priceType || 'fixed', tag: epuja.tag || '',
+                details: epuja.details || '',
+                features: (epuja.features || []).join(', '),
+                participantLimit: epuja.participantLimit || ''
+            });
+        } else {
+            setEditingEPuja(null);
+            setEpujaForm({
+                name: '', slug: '', description: '', icon: '🛕', image: '', price: 1100,
+                priceType: 'fixed', tag: '', details: '', features: '', participantLimit: ''
+            });
+        }
+        setShowEPujaModal(true);
+    };
+
+    const saveEPuja = async () => {
+        try {
+            const data = {
+                ...epujaForm,
+                features: epujaForm.features.split(',').map(s => s.trim()).filter(s => s),
+                price: parseFloat(epujaForm.price) || 0,
+                participantLimit: epujaForm.participantLimit ? parseInt(epujaForm.participantLimit) : null
+            };
+            if (editingEPuja) {
+                await axios.put(`${apiUrl}/api/epujas/${editingEPuja.id}`, data);
+            } else {
+                await axios.post(`${apiUrl}/api/epujas`, data);
+            }
+            setShowEPujaModal(false);
+            fetchData();
+            setSuccessMessage('e-Puja saved successfully!');
+            setTimeout(() => setSuccessMessage(''), 3000);
+        } catch (err) {
+            setError(err.response?.data?.error || 'Error saving e-Puja');
+            setTimeout(() => setError(''), 5000);
+        }
+    };
+
+    const deleteEPuja = async (id) => {
+        try {
+            await axios.delete(`${apiUrl}/api/epujas/${id}`);
+            fetchData();
+            setConfirmDeleteEPuja(null);
+            setSuccessMessage('e-Puja deleted!');
+            setTimeout(() => setSuccessMessage(''), 3000);
+        } catch (err) {
+            setConfirmDeleteEPuja(null);
+            setError(err.response?.data?.error || 'Error deleting e-Puja');
             setTimeout(() => setError(''), 5000);
         }
     };
@@ -283,39 +402,30 @@ const AdminDashboard = () => {
                 </div>
             )}
 
-            {/* Delete Ceremony Confirmation */}
-            {confirmDeleteCeremony && (
+            {/* Delete Confirmation Modals */}
+            {(confirmDeleteCeremony || confirmDeleteDosha || confirmDeleteEPuja || confirmDeletePandit) && (
                 <div style={{
                     position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
                     background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
                 }}>
                     <div className="card" style={{ maxWidth: '400px', textAlign: 'center' }}>
-                        <h3>Delete Ceremony?</h3>
+                        <h3>Delete Item?</h3>
                         <p style={{ color: 'var(--text-light)', marginBottom: '1.5rem' }}>
-                            Are you sure you want to delete this ceremony?
+                            Are you sure you want to delete this item?
                         </p>
                         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-                            <button onClick={() => setConfirmDeleteCeremony(null)} className="btn btn-outline">Cancel</button>
-                            <button onClick={() => deleteCeremony(confirmDeleteCeremony)} className="btn btn-primary" style={{ backgroundColor: '#EF4444' }}>Delete</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Delete Pandit Confirmation */}
-            {confirmDeletePandit && (
-                <div style={{
-                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                    background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
-                }}>
-                    <div className="card" style={{ maxWidth: '400px', textAlign: 'center' }}>
-                        <h3>Delete Pandit?</h3>
-                        <p style={{ color: 'var(--text-light)', marginBottom: '1.5rem' }}>
-                            Are you sure you want to delete this pandit?
-                        </p>
-                        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-                            <button onClick={() => setConfirmDeletePandit(null)} className="btn btn-outline">Cancel</button>
-                            <button onClick={() => deletePandit(confirmDeletePandit)} className="btn btn-primary" style={{ backgroundColor: '#EF4444' }}>Delete</button>
+                            <button onClick={() => {
+                                setConfirmDeleteCeremony(null);
+                                setConfirmDeleteDosha(null);
+                                setConfirmDeleteEPuja(null);
+                                setConfirmDeletePandit(null);
+                            }} className="btn btn-outline">Cancel</button>
+                            <button onClick={() => {
+                                if (confirmDeleteCeremony) deleteCeremony(confirmDeleteCeremony);
+                                if (confirmDeleteDosha) deleteDosha(confirmDeleteDosha);
+                                if (confirmDeleteEPuja) deleteEPuja(confirmDeleteEPuja);
+                                if (confirmDeletePandit) deletePandit(confirmDeletePandit);
+                            }} className="btn btn-primary" style={{ backgroundColor: '#EF4444' }}>Delete</button>
                         </div>
                     </div>
                 </div>
@@ -323,11 +433,11 @@ const AdminDashboard = () => {
 
             {/* Tabs */}
             <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-                {['bookings', 'pandits', 'ceremonies', 'pricing'].map(tab => (
+                {['bookings', 'pandits', 'ceremonies', 'catalog'].map(tab => (
                     <button key={tab} onClick={() => setActiveTab(tab)}
                         className={activeTab === tab ? 'btn btn-primary' : 'btn btn-outline'}
                         style={{ textTransform: 'capitalize' }}>
-                        {tab === 'ceremonies' ? 'Pujas' : tab === 'pandits' ? 'Pandits' : tab === 'pricing' ? 'Pricing' : 'Bookings'}
+                        {tab === 'ceremonies' ? 'Pujas' : tab === 'pandits' ? 'Pandits' : tab === 'catalog' ? 'Catalog' : 'Bookings'}
                     </button>
                 ))}
             </div>
@@ -597,12 +707,17 @@ const AdminDashboard = () => {
                 </div>
             )}
 
-            {/* Pricing Tab */}
-            {activeTab === 'pricing' && (
+            {/* Catalog Tab */}
+            {activeTab === 'catalog' && (
                 <div>
                     {/* Doshas Section */}
                     <div className="card" style={{ marginBottom: '2rem' }}>
-                        <h3 style={{ marginBottom: '1rem', color: 'var(--secondary)' }}>🕉️ Dosha Remedies Pricing</h3>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                            <h3 style={{ color: 'var(--secondary)' }}>🕉️ Dosha Remedies</h3>
+                            <button onClick={() => openDoshaModal()} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <Plus size={18} /> Add Dosha
+                            </button>
+                        </div>
                         <div style={{ overflowX: 'auto' }}>
                             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                                 <thead>
@@ -610,6 +725,7 @@ const AdminDashboard = () => {
                                         <th style={{ textAlign: 'left', padding: '0.75rem' }}>Icon</th>
                                         <th style={{ textAlign: 'left', padding: '0.75rem' }}>Name</th>
                                         <th style={{ textAlign: 'left', padding: '0.75rem' }}>Duration</th>
+                                        <th style={{ textAlign: 'left', padding: '0.75rem' }}>Limit</th>
                                         <th style={{ textAlign: 'left', padding: '0.75rem' }}>Price (₹)</th>
                                         <th style={{ textAlign: 'center', padding: '0.75rem' }}>Actions</th>
                                     </tr>
@@ -620,30 +736,17 @@ const AdminDashboard = () => {
                                             <td style={{ padding: '0.75rem', fontSize: '1.5rem' }}>{dosha.icon}</td>
                                             <td style={{ padding: '0.75rem', fontWeight: '500' }}>{dosha.name}</td>
                                             <td style={{ padding: '0.75rem', color: 'var(--text-light)' }}>{dosha.duration}</td>
+                                            <td style={{ padding: '0.75rem', color: 'var(--text-light)' }}>{dosha.participantLimit || 'No Limit'}</td>
                                             <td style={{ padding: '0.75rem' }}>
-                                                {editingPrice.type === 'dosha' && editingPrice.id === dosha.id ? (
-                                                    <input
-                                                        type="number"
-                                                        value={editingPrice.price}
-                                                        onChange={(e) => setEditingPrice({ ...editingPrice, price: e.target.value })}
-                                                        style={{ width: '100px', padding: '0.25rem', border: '1px solid var(--primary)', borderRadius: '4px' }}
-                                                        autoFocus
-                                                    />
-                                                ) : (
-                                                    <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>₹{dosha.price?.toLocaleString()}</span>
-                                                )}
+                                                <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>₹{dosha.price?.toLocaleString()}</span>
                                             </td>
                                             <td style={{ padding: '0.75rem', textAlign: 'center' }}>
-                                                {editingPrice.type === 'dosha' && editingPrice.id === dosha.id ? (
-                                                    <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-                                                        <button onClick={() => updatePrice('dosha', dosha.id, editingPrice.price)} className="btn btn-primary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}>Save</button>
-                                                        <button onClick={() => setEditingPrice({ type: null, id: null, price: 0 })} className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}>Cancel</button>
-                                                    </div>
-                                                ) : (
-                                                    <button onClick={() => setEditingPrice({ type: 'dosha', id: dosha.id, price: dosha.price })} className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}>
-                                                        <Edit size={14} /> Edit
-                                                    </button>
-                                                )}
+                                                <button onClick={() => openDoshaModal(dosha)} className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem', marginRight: '0.5rem' }}>
+                                                    <Edit size={14} /> Edit
+                                                </button>
+                                                <button onClick={() => setConfirmDeleteDosha(dosha.id)} className="btn" style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem', background: '#FEE2E2', color: '#991B1B' }}>
+                                                    <Trash2 size={14} />
+                                                </button>
                                             </td>
                                         </tr>
                                     ))}
@@ -654,7 +757,12 @@ const AdminDashboard = () => {
 
                     {/* e-Pujas Section */}
                     <div className="card">
-                        <h3 style={{ marginBottom: '1rem', color: 'var(--secondary)' }}>📱 e-Puja Services Pricing</h3>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                            <h3 style={{ color: 'var(--secondary)' }}>📱 e-Puja Services</h3>
+                            <button onClick={() => openEPujaModal()} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <Plus size={18} /> Add e-Puja
+                            </button>
+                        </div>
                         <div style={{ overflowX: 'auto' }}>
                             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                                 <thead>
@@ -662,7 +770,7 @@ const AdminDashboard = () => {
                                         <th style={{ textAlign: 'left', padding: '0.75rem' }}>Icon</th>
                                         <th style={{ textAlign: 'left', padding: '0.75rem' }}>Name</th>
                                         <th style={{ textAlign: 'left', padding: '0.75rem' }}>Tag</th>
-                                        <th style={{ textAlign: 'left', padding: '0.75rem' }}>Type</th>
+                                        <th style={{ textAlign: 'left', padding: '0.75rem' }}>Limit</th>
                                         <th style={{ textAlign: 'left', padding: '0.75rem' }}>Price (₹)</th>
                                         <th style={{ textAlign: 'center', padding: '0.75rem' }}>Actions</th>
                                     </tr>
@@ -675,36 +783,88 @@ const AdminDashboard = () => {
                                             <td style={{ padding: '0.75rem' }}>
                                                 {epuja.tag && <span style={{ background: '#FEF3C7', color: '#92400E', padding: '0.15rem 0.4rem', borderRadius: '4px', fontSize: '0.75rem' }}>{epuja.tag}</span>}
                                             </td>
-                                            <td style={{ padding: '0.75rem', color: 'var(--text-light)', fontSize: '0.85rem' }}>{epuja.priceType}</td>
+                                            <td style={{ padding: '0.75rem', color: 'var(--text-light)' }}>{epuja.participantLimit || 'No Limit'}</td>
                                             <td style={{ padding: '0.75rem' }}>
-                                                {editingPrice.type === 'epuja' && editingPrice.id === epuja.id ? (
-                                                    <input
-                                                        type="number"
-                                                        value={editingPrice.price}
-                                                        onChange={(e) => setEditingPrice({ ...editingPrice, price: e.target.value })}
-                                                        style={{ width: '100px', padding: '0.25rem', border: '1px solid var(--primary)', borderRadius: '4px' }}
-                                                        autoFocus
-                                                    />
-                                                ) : (
-                                                    <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>₹{epuja.price?.toLocaleString()}</span>
-                                                )}
+                                                <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>₹{epuja.price?.toLocaleString()}</span>
+                                                <div style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}>{epuja.priceType}</div>
                                             </td>
                                             <td style={{ padding: '0.75rem', textAlign: 'center' }}>
-                                                {editingPrice.type === 'epuja' && editingPrice.id === epuja.id ? (
-                                                    <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-                                                        <button onClick={() => updatePrice('epuja', epuja.id, editingPrice.price)} className="btn btn-primary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}>Save</button>
-                                                        <button onClick={() => setEditingPrice({ type: null, id: null, price: 0 })} className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}>Cancel</button>
-                                                    </div>
-                                                ) : (
-                                                    <button onClick={() => setEditingPrice({ type: 'epuja', id: epuja.id, price: epuja.price })} className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}>
-                                                        <Edit size={14} /> Edit
-                                                    </button>
-                                                )}
+                                                <button onClick={() => openEPujaModal(epuja)} className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem', marginRight: '0.5rem' }}>
+                                                    <Edit size={14} /> Edit
+                                                </button>
+                                                <button onClick={() => setConfirmDeleteEPuja(epuja.id)} className="btn" style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem', background: '#FEE2E2', color: '#991B1B' }}>
+                                                    <Trash2 size={14} />
+                                                </button>
                                             </td>
                                         </tr>
                                     ))}
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* DOSHA MODAL */}
+            {showDoshaModal && (
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+                    <div className="card" style={{ maxWidth: '500px', margin: '1rem', maxHeight: '90vh', overflow: 'auto' }}>
+                        <h3 style={{ marginBottom: '1rem' }}>{editingDosha ? 'Edit Dosha' : 'Add Dosha'}</h3>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <div><label className="label">Name *</label><input className="input" value={doshaForm.name} onChange={e => setDoshaForm({ ...doshaForm, name: e.target.value })} /></div>
+                            <div><label className="label">Slug *</label><input className="input" value={doshaForm.slug} onChange={e => setDoshaForm({ ...doshaForm, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })} /></div>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <div><label className="label">Price (₹)</label><input className="input" type="number" value={doshaForm.price} onChange={e => setDoshaForm({ ...doshaForm, price: e.target.value })} /></div>
+                            <div><label className="label">Icon</label><input className="input" value={doshaForm.icon} onChange={e => setDoshaForm({ ...doshaForm, icon: e.target.value })} /></div>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <div><label className="label">Duration</label><input className="input" value={doshaForm.duration} onChange={e => setDoshaForm({ ...doshaForm, duration: e.target.value })} /></div>
+                            <div><label className="label">Participant Limit</label><input className="input" type="number" placeholder="No Limit" value={doshaForm.participantLimit} onChange={e => setDoshaForm({ ...doshaForm, participantLimit: e.target.value })} /></div>
+                        </div>
+                        <label className="label">Description</label>
+                        <textarea className="input" value={doshaForm.description} onChange={e => setDoshaForm({ ...doshaForm, description: e.target.value })} rows={2} />
+                        <label className="label">Remedies (comma-separated)</label>
+                        <input className="input" value={doshaForm.remedies} onChange={e => setDoshaForm({ ...doshaForm, remedies: e.target.value })} />
+                        <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+                            <button onClick={() => setShowDoshaModal(false)} className="btn btn-outline" style={{ flex: 1 }}>Cancel</button>
+                            <button onClick={saveDosha} className="btn btn-primary" style={{ flex: 1 }}>Save</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* EPUJA MODAL */}
+            {showEPujaModal && (
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+                    <div className="card" style={{ maxWidth: '500px', margin: '1rem', maxHeight: '90vh', overflow: 'auto' }}>
+                        <h3 style={{ marginBottom: '1rem' }}>{editingEPuja ? 'Edit e-Puja' : 'Add e-Puja'}</h3>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <div><label className="label">Name *</label><input className="input" value={epujaForm.name} onChange={e => setEpujaForm({ ...epujaForm, name: e.target.value })} /></div>
+                            <div><label className="label">Slug *</label><input className="input" value={epujaForm.slug} onChange={e => setEpujaForm({ ...epujaForm, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })} /></div>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <div><label className="label">Price (₹)</label><input className="input" type="number" value={epujaForm.price} onChange={e => setEpujaForm({ ...epujaForm, price: e.target.value })} /></div>
+                            <div><label className="label">Icon</label><input className="input" value={epujaForm.icon} onChange={e => setEpujaForm({ ...epujaForm, icon: e.target.value })} /></div>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
+                            <div><label className="label">Type</label>
+                                <select className="input" value={epujaForm.priceType} onChange={e => setEpujaForm({ ...epujaForm, priceType: e.target.value })}>
+                                    <option value="fixed">Fixed</option>
+                                    <option value="starting">Starting</option>
+                                    <option value="monthly">Monthly</option>
+                                </select>
+                            </div>
+                            <div><label className="label">Tag</label><input className="input" value={epujaForm.tag} onChange={e => setEpujaForm({ ...epujaForm, tag: e.target.value })} /></div>
+                            <div><label className="label">Part. Limit</label><input className="input" type="number" placeholder="No Limit" value={epujaForm.participantLimit} onChange={e => setEpujaForm({ ...epujaForm, participantLimit: e.target.value })} /></div>
+                        </div>
+                        <label className="label">Description</label>
+                        <textarea className="input" value={epujaForm.description} onChange={e => setEpujaForm({ ...epujaForm, description: e.target.value })} rows={2} />
+                        <label className="label">Features (comma-separated)</label>
+                        <input className="input" value={epujaForm.features} onChange={e => setEpujaForm({ ...epujaForm, features: e.target.value })} />
+                        <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+                            <button onClick={() => setShowEPujaModal(false)} className="btn btn-outline" style={{ flex: 1 }}>Cancel</button>
+                            <button onClick={saveEPuja} className="btn btn-primary" style={{ flex: 1 }}>Save</button>
                         </div>
                     </div>
                 </div>
