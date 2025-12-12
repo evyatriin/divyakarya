@@ -8,6 +8,7 @@ const Review = require('./Review');
 const Dosha = require('./Dosha');
 const EPuja = require('./EPuja');
 const DoshaBooking = require('./DoshaBooking');
+const EPujaBooking = require('./EPujaBooking');
 const SiteSettings = require('./SiteSettings');
 
 // Associations
@@ -36,6 +37,16 @@ Dosha.hasMany(DoshaBooking);
 DoshaBooking.belongsTo(Dosha);
 User.hasMany(DoshaBooking);
 DoshaBooking.belongsTo(User);
+Pandit.hasMany(DoshaBooking);
+DoshaBooking.belongsTo(Pandit);
+
+// EPujaBooking associations
+EPuja.hasMany(EPujaBooking);
+EPujaBooking.belongsTo(EPuja);
+User.hasMany(EPujaBooking);
+EPujaBooking.belongsTo(User);
+Pandit.hasMany(EPujaBooking);
+EPujaBooking.belongsTo(Pandit);
 
 module.exports = {
     User,
@@ -48,5 +59,6 @@ module.exports = {
     Dosha,
     EPuja,
     DoshaBooking,
+    EPujaBooking,
     SiteSettings
 };

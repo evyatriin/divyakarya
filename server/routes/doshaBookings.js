@@ -53,6 +53,25 @@ router.get('/my-bookings', authenticateToken, async (req, res) => {
     }
 });
 
+// Pandit: Get my assigned dosha bookings
+router.get('/pandit', authenticateToken, async (req, res) => {
+    try {
+        const { Pandit } = require('../models');
+        const bookings = await DoshaBooking.findAll({
+            where: { PanditId: req.user.id },
+            include: [
+                { model: Dosha, attributes: ['name', 'slug', 'icon'] },
+                { model: User, attributes: ['name', 'email', 'phone'] }
+            ],
+            order: [['scheduledDate', 'ASC']]
+        });
+        res.json(bookings);
+    } catch (error) {
+        console.error('Error fetching pandit dosha bookings:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Get single booking by ID (user can only see their own)
 router.get('/:id', authenticateToken, async (req, res) => {
     try {

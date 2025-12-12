@@ -6,6 +6,9 @@ import { Calendar, DollarSign, Clock, CheckCircle, XCircle, Plus, Trash2, Edit, 
 const PanditDashboard = () => {
     const { user, updateUser } = useAuth();
     const [bookings, setBookings] = useState([]);
+    const [doshaBookings, setDoshaBookings] = useState([]);
+    const [epujaBookings, setEpujaBookings] = useState([]);
+    const [bookingType, setBookingType] = useState('ceremonies');
     const [stats, setStats] = useState({ pending: 0, accepted: 0, completed: 0, thisMonth: 0, rating: 0, totalReviews: 0 });
     const [revenue, setRevenue] = useState({ totalRevenue: 0, totalCeremonies: 0, perCeremony: [], aggregateByCeremony: {} });
     const [isOnline, setIsOnline] = useState(false);
@@ -55,6 +58,22 @@ const PanditDashboard = () => {
             setBookings(bookingsRes.data);
             setStats(statsRes.data);
             setRevenue(revenueRes.data);
+
+            // Fetch dosha and epuja bookings
+            try {
+                const doshaRes = await axios.get(`${apiUrl}/api/dosha-bookings/pandit`);
+                setDoshaBookings(doshaRes.data);
+            } catch (e) {
+                console.log('No dosha bookings or no access');
+            }
+
+            try {
+                const epujaRes = await axios.get(`${apiUrl}/api/epuja-bookings/pandit`);
+                setEpujaBookings(epujaRes.data);
+            } catch (e) {
+                console.log('No epuja bookings or no access');
+            }
+
             setLoading(false);
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -528,93 +547,199 @@ const PanditDashboard = () => {
 
             {/* All Requests */}
             <div className="card">
-                <h3 style={{ marginBottom: '1.5rem' }}>All Requests</h3>
-                {bookings.length === 0 ? (
-                    <p style={{ textAlign: 'center', color: 'var(--text-light)' }}>No requests yet.</p>
-                ) : (
-                    <div style={{ overflowX: 'auto' }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                            <thead>
-                                <tr style={{ textAlign: 'left', borderBottom: '2px solid #E5E7EB' }}>
-                                    <th style={{ padding: '0.75rem' }}>Ceremony</th>
-                                    <th style={{ padding: '0.75rem' }}>Date/Time</th>
-                                    <th style={{ padding: '0.75rem' }}>Location</th>
-                                    <th style={{ padding: '0.75rem' }}>Customer</th>
-                                    <th style={{ padding: '0.75rem' }}>Status</th>
-                                    <th style={{ padding: '0.75rem' }}>Your Earning</th>
-                                    <th style={{ padding: '0.75rem' }}>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {bookings.map(b => (
-                                    <tr key={b.id} style={{ borderBottom: '1px solid #E5E7EB' }}>
-                                        <td style={{ padding: '0.75rem' }}>{b.ceremonyType}</td>
-                                        <td style={{ padding: '0.75rem' }}>
-                                            <div>{b.date}</div>
-                                            <div style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}>{b.time}</div>
-                                        </td>
-                                        <td style={{ padding: '0.75rem' }}>{b.address}</td>
-                                        <td style={{ padding: '0.75rem' }}>
-                                            <div>{b.User?.name}</div>
-                                            <div style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}>
-                                                {b.User?.phone}
-                                            </div>
-                                        </td>
-                                        <td style={{ padding: '0.75rem' }}>
-                                            <span style={{
-                                                padding: '0.25rem 0.75rem',
-                                                borderRadius: '12px',
-                                                fontSize: '0.85rem',
-                                                fontWeight: '600',
-                                                background: b.status === 'accepted' ? '#D1FAE5' :
-                                                    b.status === 'completed' ? '#DBEAFE' :
-                                                        b.status === 'rejected' ? '#FEE2E2' :
-                                                            b.status === 'cancelled' ? '#F3F4F6' : '#FEF3C7',
-                                                color: b.status === 'accepted' ? '#065F46' :
-                                                    b.status === 'completed' ? '#1E40AF' :
-                                                        b.status === 'rejected' ? '#991B1B' :
-                                                            b.status === 'cancelled' ? '#6B7280' : '#92400E'
-                                            }}>
-                                                {b.status}
-                                            </span>
-                                        </td>
-                                        <td style={{ padding: '0.75rem', fontWeight: '600', color: '#10B981' }}>
-                                            ₹{b.remainingAmount || Math.round((b.totalAmount || b.amount) * 0.75)}
-                                        </td>
-                                        <td style={{ padding: '0.75rem' }}>
-                                            {b.status === 'pending' && (
-                                                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                                    <button
-                                                        onClick={() => updateBookingStatus(b.id, 'accepted')}
-                                                        className="btn btn-primary"
-                                                        style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
-                                                    >
-                                                        <CheckCircle size={14} /> Accept
-                                                    </button>
-                                                    <button
-                                                        onClick={() => updateBookingStatus(b.id, 'rejected')}
-                                                        className="btn btn-outline"
-                                                        style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
-                                                    >
-                                                        <XCircle size={14} /> Reject
-                                                    </button>
-                                                </div>
-                                            )}
-                                            {b.status === 'accepted' && (
-                                                <button
-                                                    onClick={() => updateBookingStatus(b.id, 'completed')}
-                                                    className="btn btn-primary"
-                                                    style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
-                                                >
-                                                    Mark Complete
-                                                </button>
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+                    <h3 style={{ margin: 0 }}>All Requests</h3>
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                        {['ceremonies', 'doshas', 'epujas'].map(type => (
+                            <button
+                                key={type}
+                                onClick={() => setBookingType(type)}
+                                className={`btn ${bookingType === type ? 'btn-primary' : 'btn-outline'}`}
+                                style={{ padding: '0.4rem 1rem', fontSize: '0.85rem' }}
+                            >
+                                {type === 'ceremonies' ? '🕉️ Ceremonies' : type === 'doshas' ? '⭐ Doshas' : '📹 e-Pujas'}
+                                <span style={{ marginLeft: '0.5rem', background: bookingType === type ? 'rgba(255,255,255,0.2)' : '#E5E7EB', padding: '0.1rem 0.4rem', borderRadius: '10px', fontSize: '0.75rem' }}>
+                                    {type === 'ceremonies' ? bookings.length : type === 'doshas' ? doshaBookings.length : epujaBookings.length}
+                                </span>
+                            </button>
+                        ))}
                     </div>
+                </div>
+
+                {/* Ceremonies Table */}
+                {bookingType === 'ceremonies' && (
+                    bookings.length === 0 ? (
+                        <p style={{ textAlign: 'center', color: 'var(--text-light)', padding: '2rem' }}>No ceremony requests yet.</p>
+                    ) : (
+                        <div style={{ overflowX: 'auto' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                <thead>
+                                    <tr style={{ textAlign: 'left', borderBottom: '2px solid #E5E7EB' }}>
+                                        <th style={{ padding: '0.75rem' }}>Ceremony</th>
+                                        <th style={{ padding: '0.75rem' }}>Date/Time</th>
+                                        <th style={{ padding: '0.75rem' }}>Location</th>
+                                        <th style={{ padding: '0.75rem' }}>Customer</th>
+                                        <th style={{ padding: '0.75rem' }}>Status</th>
+                                        <th style={{ padding: '0.75rem' }}>Your Earning</th>
+                                        <th style={{ padding: '0.75rem' }}>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {bookings.map(b => (
+                                        <tr key={b.id} style={{ borderBottom: '1px solid #E5E7EB' }}>
+                                            <td style={{ padding: '0.75rem' }}>{b.ceremonyType}</td>
+                                            <td style={{ padding: '0.75rem' }}>
+                                                <div>{b.date}</div>
+                                                <div style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}>{b.time}</div>
+                                            </td>
+                                            <td style={{ padding: '0.75rem' }}>{b.address}</td>
+                                            <td style={{ padding: '0.75rem' }}>
+                                                <div>{b.User?.name}</div>
+                                                <div style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}>{b.User?.phone}</div>
+                                            </td>
+                                            <td style={{ padding: '0.75rem' }}>
+                                                <span style={{
+                                                    padding: '0.25rem 0.75rem', borderRadius: '12px', fontSize: '0.85rem', fontWeight: '600',
+                                                    background: b.status === 'accepted' ? '#D1FAE5' : b.status === 'completed' ? '#DBEAFE' : b.status === 'rejected' ? '#FEE2E2' : b.status === 'cancelled' ? '#F3F4F6' : '#FEF3C7',
+                                                    color: b.status === 'accepted' ? '#065F46' : b.status === 'completed' ? '#1E40AF' : b.status === 'rejected' ? '#991B1B' : b.status === 'cancelled' ? '#6B7280' : '#92400E'
+                                                }}>
+                                                    {b.status}
+                                                </span>
+                                            </td>
+                                            <td style={{ padding: '0.75rem', fontWeight: '600', color: '#10B981' }}>
+                                                ₹{b.remainingAmount || Math.round((b.totalAmount || b.amount) * 0.75)}
+                                            </td>
+                                            <td style={{ padding: '0.75rem' }}>
+                                                {b.status === 'pending' && (
+                                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                        <button onClick={() => updateBookingStatus(b.id, 'accepted')} className="btn btn-primary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
+                                                            <CheckCircle size={14} /> Accept
+                                                        </button>
+                                                        <button onClick={() => updateBookingStatus(b.id, 'rejected')} className="btn btn-outline" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
+                                                            <XCircle size={14} /> Reject
+                                                        </button>
+                                                    </div>
+                                                )}
+                                                {b.status === 'accepted' && (
+                                                    <button onClick={() => updateBookingStatus(b.id, 'completed')} className="btn btn-primary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
+                                                        Mark Complete
+                                                    </button>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )
+                )}
+
+                {/* Doshas Table */}
+                {bookingType === 'doshas' && (
+                    doshaBookings.length === 0 ? (
+                        <p style={{ textAlign: 'center', color: 'var(--text-light)', padding: '2rem' }}>No dosha puja requests assigned to you yet.</p>
+                    ) : (
+                        <div style={{ overflowX: 'auto' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                <thead>
+                                    <tr style={{ textAlign: 'left', borderBottom: '2px solid #E5E7EB' }}>
+                                        <th style={{ padding: '0.75rem' }}>Dosha</th>
+                                        <th style={{ padding: '0.75rem' }}>Customer</th>
+                                        <th style={{ padding: '0.75rem' }}>Scheduled</th>
+                                        <th style={{ padding: '0.75rem' }}>Mode</th>
+                                        <th style={{ padding: '0.75rem' }}>Status</th>
+                                        <th style={{ padding: '0.75rem' }}>Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {doshaBookings.map(b => (
+                                        <tr key={b.id} style={{ borderBottom: '1px solid #E5E7EB' }}>
+                                            <td style={{ padding: '0.75rem' }}>
+                                                <div style={{ fontWeight: '500' }}>{b.Dosha?.name || 'Dosha Puja'}</div>
+                                                <div style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>{b.pricingTier}</div>
+                                            </td>
+                                            <td style={{ padding: '0.75rem' }}>
+                                                <div>{b.fullName}</div>
+                                                <div style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}>{b.mobile}</div>
+                                            </td>
+                                            <td style={{ padding: '0.75rem' }}>
+                                                {b.scheduledDate ? (
+                                                    <>
+                                                        <div>{b.scheduledDate}</div>
+                                                        <div style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}>{b.scheduledTime || '-'}</div>
+                                                    </>
+                                                ) : <span style={{ color: 'var(--text-light)' }}>Not scheduled</span>}
+                                            </td>
+                                            <td style={{ padding: '0.75rem' }}>
+                                                <span style={{ fontSize: '0.85rem', textTransform: 'capitalize' }}>{b.mode?.replace(/-/g, ' ')}</span>
+                                            </td>
+                                            <td style={{ padding: '0.75rem' }}>
+                                                <span style={{
+                                                    padding: '0.25rem 0.75rem', borderRadius: '12px', fontSize: '0.85rem', fontWeight: '600',
+                                                    background: b.status === 'scheduled' ? '#D1FAE5' : b.status === 'completed' ? '#DBEAFE' : '#FEF3C7',
+                                                    color: b.status === 'scheduled' ? '#065F46' : b.status === 'completed' ? '#1E40AF' : '#92400E'
+                                                }}>
+                                                    {b.status}
+                                                </span>
+                                            </td>
+                                            <td style={{ padding: '0.75rem', fontWeight: '600', color: '#10B981' }}>
+                                                ₹{b.totalAmount || '-'}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )
+                )}
+
+                {/* e-Pujas Table */}
+                {bookingType === 'epujas' && (
+                    epujaBookings.length === 0 ? (
+                        <p style={{ textAlign: 'center', color: 'var(--text-light)', padding: '2rem' }}>No e-puja requests assigned to you yet.</p>
+                    ) : (
+                        <div style={{ overflowX: 'auto' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                <thead>
+                                    <tr style={{ textAlign: 'left', borderBottom: '2px solid #E5E7EB' }}>
+                                        <th style={{ padding: '0.75rem' }}>Puja</th>
+                                        <th style={{ padding: '0.75rem' }}>Customer</th>
+                                        <th style={{ padding: '0.75rem' }}>Date</th>
+                                        <th style={{ padding: '0.75rem' }}>Status</th>
+                                        <th style={{ padding: '0.75rem' }}>Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {epujaBookings.map(b => (
+                                        <tr key={b.id} style={{ borderBottom: '1px solid #E5E7EB' }}>
+                                            <td style={{ padding: '0.75rem' }}>
+                                                <div style={{ fontWeight: '500' }}>{b.pujaName || b.EPuja?.name || 'e-Puja'}</div>
+                                            </td>
+                                            <td style={{ padding: '0.75rem' }}>
+                                                <div>{b.fullName}</div>
+                                                <div style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}>{b.mobile}</div>
+                                            </td>
+                                            <td style={{ padding: '0.75rem' }}>
+                                                {b.pujaDate || <span style={{ color: 'var(--text-light)' }}>TBD</span>}
+                                            </td>
+                                            <td style={{ padding: '0.75rem' }}>
+                                                <span style={{
+                                                    padding: '0.25rem 0.75rem', borderRadius: '12px', fontSize: '0.85rem', fontWeight: '600',
+                                                    background: b.status === 'scheduled' ? '#D1FAE5' : b.status === 'completed' ? '#DBEAFE' : '#FEF3C7',
+                                                    color: b.status === 'scheduled' ? '#065F46' : b.status === 'completed' ? '#1E40AF' : '#92400E'
+                                                }}>
+                                                    {b.status}
+                                                </span>
+                                            </td>
+                                            <td style={{ padding: '0.75rem', fontWeight: '600', color: '#10B981' }}>
+                                                ₹{b.totalAmount || '-'}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )
                 )}
             </div>
 
