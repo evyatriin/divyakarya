@@ -7,6 +7,7 @@ const PanditAvailability = require('./PanditAvailability');
 const Review = require('./Review');
 const Dosha = require('./Dosha');
 const EPuja = require('./EPuja');
+const DoshaBooking = require('./DoshaBooking');
 
 // Associations
 User.hasMany(Booking);
@@ -29,6 +30,12 @@ Review.belongsTo(Pandit);
 User.hasMany(Review);
 Review.belongsTo(User);
 
+// DoshaBooking associations
+Dosha.hasMany(DoshaBooking);
+DoshaBooking.belongsTo(Dosha);
+User.hasMany(DoshaBooking);
+DoshaBooking.belongsTo(User);
+
 module.exports = {
     User,
     Pandit,
@@ -38,6 +45,7 @@ module.exports = {
     PanditAvailability,
     Review,
     Dosha,
-    EPuja
+    EPuja,
+    DoshaBooking
 };
 

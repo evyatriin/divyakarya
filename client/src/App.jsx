@@ -12,6 +12,8 @@ import LandingPage from './pages/LandingPage';
 import CeremonyDetails from './pages/CeremonyDetails';
 import ModernBooking from './pages/ModernBooking';
 import DoshasPage from './pages/DoshasPage';
+import DoshaDetailPage from './pages/DoshaDetailPage';
+import DoshaBookingForm from './pages/DoshaBookingForm';
 import EPujasPage from './pages/EPujasPage';
 import PanditsPage from './pages/PanditsPage';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -59,6 +61,8 @@ function App() {
         <Route path="/ceremony/:id" element={<CeremonyDetails />} />
         <Route path="/modern" element={<ModernBooking />} />
         <Route path="/doshas" element={<DoshasPage />} />
+        <Route path="/doshas/:slug" element={<DoshaDetailPage />} />
+        <Route path="/doshas/:slug/book" element={<DoshaBookingForm />} />
         <Route path="/epujas" element={<EPujasPage />} />
         <Route path="/pandits" element={<PanditsPage />} />
 

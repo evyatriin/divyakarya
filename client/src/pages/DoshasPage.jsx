@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Calendar } from 'lucide-react';
+import { Calendar, MapPin, Clock, ArrowRight } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
 const DoshasPage = () => {
@@ -54,37 +54,86 @@ const DoshasPage = () => {
                 ) : (
                     <div style={{
                         display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
                         gap: '1.5rem'
                     }}>
                         {doshas.map((dosha) => (
-                            <div key={dosha.id} className="card" style={{ padding: '1.5rem' }}>
+                            <div key={dosha.id} className="card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
+                                {/* Header */}
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-                                    <span style={{ fontSize: '2rem' }}>{dosha.icon}</span>
-                                    <h3 style={{ margin: 0 }}>{dosha.name}</h3>
+                                    <span style={{ fontSize: '2.5rem' }}>{dosha.icon}</span>
+                                    <h3 style={{ margin: 0, fontSize: '1.1rem' }}>{dosha.name}</h3>
                                 </div>
-                                <p style={{ color: 'var(--text-light)', marginBottom: '1rem', fontSize: '0.9rem' }}>
-                                    {dosha.details || dosha.description}
+
+                                {/* Description */}
+                                <p style={{ color: 'var(--text-light)', marginBottom: '1rem', fontSize: '0.9rem', lineHeight: '1.5' }}>
+                                    {dosha.description}
                                 </p>
-                                {dosha.remedies && dosha.remedies.length > 0 && (
-                                    <div style={{ marginBottom: '1rem' }}>
-                                        <strong style={{ fontSize: '0.85rem' }}>Remedies:</strong>
-                                        <ul style={{ margin: '0.5rem 0', paddingLeft: '1.25rem', fontSize: '0.85rem', color: 'var(--text-light)' }}>
-                                            {dosha.remedies.map((r, i) => <li key={i}>{r}</li>)}
+
+                                {/* Meta Info */}
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginBottom: '1rem', fontSize: '0.85rem', color: 'var(--text-light)' }}>
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                        <Clock size={14} /> {dosha.duration}
+                                    </span>
+                                    {dosha.mode && (
+                                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                            <MapPin size={14} /> {dosha.mode.split('/')[0].trim()}
+                                        </span>
+                                    )}
+                                </div>
+
+                                {/* Recommended When - First 2 items */}
+                                {dosha.recommendedWhen && dosha.recommendedWhen.length > 0 && (
+                                    <div style={{ marginBottom: '1rem', flex: 1 }}>
+                                        <strong style={{ fontSize: '0.8rem', color: 'var(--text)', display: 'block', marginBottom: '0.5rem' }}>Recommended For:</strong>
+                                        <ul style={{ margin: 0, paddingLeft: '1rem', fontSize: '0.85rem', color: 'var(--text-light)' }}>
+                                            {dosha.recommendedWhen.slice(0, 2).map((item, i) => (
+                                                <li key={i} style={{ marginBottom: '0.25rem' }}>{item}</li>
+                                            ))}
                                         </ul>
                                     </div>
                                 )}
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', fontSize: '0.85rem' }}>
-                                    <span><Calendar size={14} style={{ marginRight: '0.25rem' }} />{dosha.duration}</span>
-                                    <span style={{ fontWeight: 'bold', color: 'var(--primary)' }}>{formatPrice(dosha.price)}</span>
+
+                                {/* Location Tags */}
+                                {dosha.locationOptions && dosha.locationOptions.length > 0 && (
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
+                                        {dosha.locationOptions.slice(0, 2).map((loc, i) => (
+                                            <span key={i} style={{
+                                                background: '#E8F5E9',
+                                                color: '#2E7D32',
+                                                padding: '0.2rem 0.6rem',
+                                                borderRadius: '12px',
+                                                fontSize: '0.75rem'
+                                            }}>{loc}</span>
+                                        ))}
+                                        {dosha.locationOptions.length > 2 && (
+                                            <span style={{
+                                                background: '#F3F4F6',
+                                                color: 'var(--text-light)',
+                                                padding: '0.2rem 0.6rem',
+                                                borderRadius: '12px',
+                                                fontSize: '0.75rem'
+                                            }}>+{dosha.locationOptions.length - 2} more</span>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Price & CTA */}
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid #E5E7EB' }}>
+                                    <div>
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}>Starting from</div>
+                                        <div style={{ fontWeight: 'bold', color: 'var(--primary)', fontSize: '1.25rem' }}>
+                                            {formatPrice(dosha.price)}
+                                        </div>
+                                    </div>
+                                    <button
+                                        className="btn btn-primary"
+                                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                                        onClick={() => navigate(`/doshas/${dosha.slug}`)}
+                                    >
+                                        View Details <ArrowRight size={16} />
+                                    </button>
                                 </div>
-                                <button
-                                    className="btn btn-primary"
-                                    style={{ width: '100%' }}
-                                    onClick={() => navigate('/dashboard')}
-                                >
-                                    Book Consultation
-                                </button>
                             </div>
                         ))}
                     </div>
